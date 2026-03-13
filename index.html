@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Ομιλητική Ακουομετρία - V86</title>
+    <title>Ομιλητική Ακουομετρία - V85.1</title>
     <style>
         :root { --primary: #007aff; --success: #34c759; --danger: #ff3b30; --warning: #ff9500; --bg: #f2f2f7; --card: #ffffff; }
         body { font-family: -apple-system, system-ui, sans-serif; padding: 15px; background: var(--bg); color: #1c1c1e; margin: 0; }
@@ -30,8 +30,8 @@
         td { padding: 10px; border-bottom: 1px solid #eee; text-align: center; font-weight: bold; }
         .history-item { display: flex; justify-content: space-between; align-items: center; padding: 15px; border: 1px solid #ddd; background: #fff; margin-bottom: 10px; border-radius: 15px; transition: 0.2s; }
         .history-item:hover { border-color: var(--primary); background: #f0f7ff; }
-        .history-info { cursor: pointer; flex-grow: 1; }
-        .delete-btn { background: var(--danger); color: white; border: none; width: 35px; height: 35px; border-radius: 10px; cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center; margin-left: 10px; }
+        .history-link { cursor: pointer; flex-grow: 1; }
+        .del-btn { background: var(--danger); color: white; border: none; width: 35px; height: 35px; border-radius: 10px; cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center; margin-left: 10px; }
         .scoring-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
         .btn-score { border: none; border-radius: 15px; padding: 22px 0; font-weight: 900; font-size: 24px; color: #fff; cursor: pointer; }
         .s0 { background: var(--danger); } .s1a { background: var(--warning); } .s1b { background: #ffcc00; color: #000; } .s2 { background: var(--success); }
@@ -260,40 +260,48 @@
     }
 
     function saveToHistory(srt) {
-        let history = JSON.parse(localStorage.getItem('audit_v86') || '[]');
-        history.push({ id: Date.now(), name: document.getElementById('pName').value, side: curSide, srt: srt, date: new Date().toLocaleString('el-GR'), raw: [...state.hist] });
-        localStorage.setItem('audit_v86', JSON.stringify(history.slice(-15))); loadHistory();
+        let history = JSON.parse(localStorage.getItem('audit_v85') || '[]');
+        history.push({ 
+            id: Date.now(), 
+            name: document.getElementById('pName').value, 
+            side: curSide, 
+            srt: srt, 
+            date: new Date().toLocaleString('el-GR'), 
+            raw: [...state.hist] 
+        });
+        localStorage.setItem('audit_v85', JSON.stringify(history.slice(-15))); 
+        loadHistory();
     }
 
     function deleteFromHistory(e, id) {
         e.stopPropagation();
         if(!confirm("Σίγουρη διαγραφή αυτής της εξέτασης;")) return;
-        let history = JSON.parse(localStorage.getItem('audit_v86') || '[]');
+        let history = JSON.parse(localStorage.getItem('audit_v85') || '[]');
         history = history.filter(item => item.id !== id);
-        localStorage.setItem('audit_v86', JSON.stringify(history));
+        localStorage.setItem('audit_v85', JSON.stringify(history));
         loadHistory();
     }
 
     function loadHistory() {
-        const history = JSON.parse(localStorage.getItem('audit_v86') || '[]');
+        const history = JSON.parse(localStorage.getItem('audit_v85') || '[]');
         const list = document.getElementById('historyList');
         list.innerHTML = history.length ? '<label>Ιστορικό Εξετάσεων</label>' : '';
         history.reverse().forEach((item, idx) => {
             const realIdx = history.length - 1 - idx;
-            const hDiv = document.createElement('div');
-            hDiv.className = 'history-item';
-            hDiv.innerHTML = `
-                <div class="history-info" onclick="viewHistory(${realIdx})">
+            const itemDiv = document.createElement('div');
+            itemDiv.className = 'history-item';
+            itemDiv.innerHTML = `
+                <div class="history-link" onclick="viewHistory(${realIdx})">
                     <b>${item.name}</b><br><small>${item.date} | ${item.side==='L'?'Αρ':'Δε'} | ${item.srt}dB</small>
                 </div>
-                <button class="delete-btn" onclick="deleteFromHistory(event, ${item.id})">🗑️</button>
+                <button class="del-btn" onclick="deleteFromHistory(event, ${item.id})">🗑️</button>
             `;
-            list.appendChild(hDiv);
+            list.appendChild(itemDiv);
         });
     }
 
     function viewHistory(idx) {
-        const history = JSON.parse(localStorage.getItem('audit_v86') || '[]');
+        const history = JSON.parse(localStorage.getItem('audit_v85') || '[]');
         const item = history[idx]; document.getElementById('pName').value = item.name;
         curSide = item.side; state.hist = item.raw; document.getElementById('setup').style.display='none'; finish(item.srt);
     }
