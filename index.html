@@ -2,7 +2,7 @@
 <html lang="el">
 <head>
     <meta charset="UTF-8">
-    <title>Ομιλητική Ακουομετρία - V53</title>
+    <title>Ομιλητική Ακουομετρία - V54</title>
     <style>
         :root { --primary: #007aff; --success: #34c759; --danger: #ff3b30; --warning: #ff9500; --bg: #f2f2f7; --card: #ffffff; }
         * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
@@ -319,9 +319,8 @@
         });
     }
 
-    // FIXED EXCEL EXPORT WITH GREEK UTF-8 BOM
     function exportToExcel() {
-        const bom = "\uFEFF"; // Byte Order Mark for UTF-8 (Vital for Greek characters in Excel)
+        // STRONG UTF-8 ENCODING FOR GREEK
         let csv = "sep=;\n";
         csv += "A/A;Λέξη;Συλλαβή 1;Κατάσταση 1;Συλλαβή 2;Κατάσταση 2;SNR;Σκορ;Αναστροφή\n";
         state.hist.forEach((h,i) => {
@@ -329,19 +328,28 @@
             const err2 = (h.val===0||h.type==='a') ? "ΛΑΘΟΣ" : "OK";
             csv += `${i+1};${h.s1}${h.s2};${h.s1};${err1};${h.s2};${err2};${h.snr};${h.val===2?'100%':(h.val===0?'0%':'50%')};${h.isRev?'NAI':''}\n`;
         });
-        const blob = new Blob([bom + csv], { type: 'text/csv;charset=utf-8;' });
+        
+        const encoder = new TextEncoder();
+        const arrayBuffer = encoder.encode(csv);
+        // Add UTF-8 BOM (Byte Order Mark) explicitly
+        const bom = new Uint8Array([0xEF, 0xBB, 0xBF]);
+        const combined = new Uint8Array(bom.length + arrayBuffer.length);
+        combined.set(bom);
+        combined.set(arrayBuffer, bom.length);
+
+        const blob = new Blob([combined], { type: 'text/csv;charset=utf-8;' });
         const link = document.createElement("a");
         link.href = URL.createObjectURL(blob);
         link.download = `Result_${document.getElementById('pName').value}_${curSide}.csv`;
         link.click();
     }
 
-    // TABLET FRIENDLY PRINTING WITH AUTOMATIC DIALOG
     function smartPrint() {
         const content = document.getElementById('printArea').innerHTML;
         const canvas = document.getElementById('fCanvas');
         const imgData = canvas.toDataURL("image/png");
         const printWin = window.open('', '_blank');
+        
         printWin.document.write(`
             <html><head><title>Εκτύπωση Αναφοράς</title>
             <style>
@@ -360,7 +368,7 @@
                 canvasWrapper.innerHTML = '<img src="${imgData}">';
                 window.onload = function() {
                     window.focus();
-                    setTimeout(function() { window.print(); window.close(); }, 500);
+                    setTimeout(function() { window.print(); }, 800);
                 };
             <\/script></body></html>
         `);
