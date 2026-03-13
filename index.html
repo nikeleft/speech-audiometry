@@ -211,7 +211,8 @@
 
     function updateUI() {
         document.getElementById('snrDisp').innerText = state.snr + " dB";
-        document.getElementById('wDisp').innerText = state.activeWords[state.idx].s1 + state.activeWords[state.idx].s2 + ".";
+        // ΑΛΛΑΓΗ: Αφαίρεση της τελείας από την εμφάνιση της λέξης
+        document.getElementById('wDisp').innerText = state.activeWords[state.idx].s1 + state.activeWords[state.idx].s2;
         drawGraph('cCanvas', state.hist, state.snr);
     }
 
