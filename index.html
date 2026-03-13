@@ -2,82 +2,58 @@
 <html lang="el">
 <head>
     <meta charset="UTF-8">
-    <title>Ομιλητική Ακουομετρία - V55</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Ομιλητική Ακουομετρία - V66</title>
     <style>
         :root { --primary: #007aff; --success: #34c759; --danger: #ff3b30; --warning: #ff9500; --bg: #f2f2f7; --card: #ffffff; }
         * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-        body { font-family: -apple-system, system-ui, sans-serif; padding: 20px; background: var(--bg); color: #1c1c1e; margin: 0; }
-        .container { max-width: 850px; margin: 20px auto; background: var(--card); padding: 40px; border-radius: 30px; box-shadow: 0 20px 40px rgba(0,0,0,0.05); }
-        
+        body { font-family: -apple-system, system-ui, sans-serif; padding: 15px; background: var(--bg); color: #1c1c1e; margin: 0; }
+        .container { max-width: 850px; margin: 0 auto; background: var(--card); padding: 25px; border-radius: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
         .app-logo { text-align: center; margin-bottom: 20px; }
-        .icon-circle { width: 80px; height: 80px; background: var(--primary); border-radius: 20px; display: inline-flex; align-items: center; justify-content: center; color: white; font-size: 40px; box-shadow: 0 10px 20px rgba(0,122,255,0.3); }
-
-        .cal-box { background: #1c1c1e !important; color: white; padding: 15px; border-radius: 15px; margin-bottom: 25px; display: flex; align-items: center; justify-content: space-between; border: 2px solid var(--primary); }
-        .cal-btn { background: var(--danger); color: white; border: none; padding: 12px 20px; border-radius: 10px; font-weight: bold; cursor: pointer; }
-        
-        label { font-weight: 800; font-size: 0.85em; color: #555; display: block; margin-bottom: 8px; text-transform: uppercase; }
-        input, select { width: 100%; padding: 15px; border-radius: 12px; border: 2px solid #d1d1d6; font-size: 16px; margin-bottom: 15px; box-sizing: border-box; }
-
-        .ear-selector-box { display: flex; background: #e5e5ea; padding: 5px; border-radius: 15px; margin-bottom: 20px; }
-        .ear-opt { flex: 1; text-align: center; padding: 15px; border-radius: 12px; cursor: pointer; font-weight: 900; transition: 0.3s; }
-        .ear-opt.active.R { background: var(--danger) !important; color: white !important; box-shadow: inset 0 0 0 1000px var(--danger); }
-        .ear-opt.active.L { background: var(--primary) !important; color: white !important; box-shadow: inset 0 0 0 1000px var(--primary); }
-
-        .custom-file-upload { display: flex; align-items: center; justify-content: center; height: 50px; border: 2px dashed var(--primary); border-radius: 12px; cursor: pointer; font-weight: bold; margin-bottom: 10px; color: var(--primary); background: #fff; }
-        .file-selected { border: 3px solid var(--success) !important; background: #f2faf4 !important; color: #1a7d32 !important; }
-        
-        .play-btn { background: var(--primary) !important; color: white !important; width: 100%; padding: 22px; border: none; border-radius: 20px; font-size: 20px; font-weight: 900; cursor: pointer; margin-bottom: 10px; box-shadow: inset 0 0 0 1000px var(--primary); transition: 0.2s; }
-        .play-btn:active { transform: scale(0.98); }
-
-        .graph-wrapper { background: #fff; border: 1px solid #eee; border-radius: 15px; padding: 20px; margin: 15px 0; position: relative; }
-        canvas { width: 100%; height: 280px; }
-
-        .history-panel { margin: 20px 0; padding: 20px; background: #f8f9fa; border-radius: 20px; border: 1px solid #ddd; }
-        .history-list { max-height: 250px; overflow-y: auto; background: white; border-radius: 12px; margin-top: 10px; border: 1px solid #eee; }
-        .history-item { padding: 12px; border-bottom: 1px solid #eee; display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; text-align: center; font-size: 0.9em; cursor: pointer; }
-        .history-item:hover { background: #f0f7ff; }
-        .history-header-row { font-weight: bold; background: var(--primary); color: white; padding: 10px; display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; text-align: center; border-radius: 10px 10px 0 0; }
-
-        .pdf-card { border: 8px solid var(--primary) !important; padding: 30px; border-radius: 30px; background: white !important; }
-        .srt-box { 
-            background-color: var(--success) !important; color: white !important; padding: 25px; border-radius: 20px; text-align: center; 
-            font-size: 3.5em; font-weight: 900; margin: 20px 0; box-shadow: inset 0 0 0 1000px var(--success) !important;
-        }
-        
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th { background-color: var(--primary) !important; color: white !important; padding: 12px; box-shadow: inset 0 0 0 1000px var(--primary) !important; }
+        .icon-circle { width: 70px; height: 70px; background: var(--primary); border-radius: 18px; display: inline-flex; align-items: center; justify-content: center; color: white; font-size: 35px; }
+        .cal-box { background: #1c1c1e; color: white; padding: 15px; border-radius: 12px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; }
+        .cal-btn { background: var(--danger); color: white; border: none; padding: 10px 15px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        label { font-weight: 800; font-size: 0.8em; color: #555; display: block; margin-bottom: 5px; text-transform: uppercase; }
+        input, select { width: 100%; padding: 14px; border-radius: 12px; border: 2px solid #d1d1d6; font-size: 16px; margin-bottom: 12px; box-sizing: border-box; }
+        .ear-selector-box { display: flex; gap: 10px; margin-bottom: 20px; }
+        .ear-opt { flex: 1; text-align: center; padding: 18px; border-radius: 15px; cursor: pointer; font-weight: 900; background: #e5e5ea; transition: 0.2s; }
+        .ear-opt.active.L { background: var(--primary); color: white; box-shadow: 0 5px 15px rgba(0,122,255,0.4); }
+        .ear-opt.active.R { background: var(--danger); color: white; box-shadow: 0 5px 15px rgba(255,59,48,0.4); }
+        .custom-file-upload { display: flex; align-items: center; justify-content: center; height: 48px; border: 2px dashed var(--primary); border-radius: 12px; cursor: pointer; font-weight: bold; margin-bottom: 8px; color: var(--primary); }
+        .file-selected { border: 2px solid var(--success) !important; background: #f2faf4 !important; color: #1a7d32 !important; }
+        .play-btn { background: var(--primary); color: white; width: 100%; padding: 22px; border: none; border-radius: 20px; font-size: 30px; font-weight: 900; cursor: pointer; margin-bottom: 15px; }
+        .secondary-btn { background: var(--warning); color: white; width: 100%; padding: 18px; border: none; border-radius: 15px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        canvas { width: 100%; height: 280px; background: #fff; border-radius: 15px; }
+        .pdf-card { border: 6px solid var(--primary); padding: 25px; border-radius: 25px; background: white; }
+        .srt-box { background: var(--success); color: white; padding: 20px; border-radius: 18px; text-align: center; font-size: 3.5em; font-weight: 900; margin: 15px 0; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.95em; margin-top: 15px; }
+        th { background: var(--primary); color: white; padding: 12px; }
         td { padding: 10px; border-bottom: 1px solid #eee; text-align: center; font-weight: bold; }
-        .strike-err { color: var(--danger) !important; text-decoration: line-through !important; }
-
-        .scoring-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
-        .btn-score { border: none; border-radius: 15px; padding: 20px 5px; font-weight: 900; font-size: 1.8em; color: #fff; cursor: pointer; }
+        .strike-err { color: var(--danger); text-decoration: line-through; }
+        .scoring-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+        .btn-score { border: none; border-radius: 15px; padding: 20px 0; font-weight: 900; font-size: 1.8em; color: #fff; cursor: pointer; }
         .s0 { background: var(--danger); } .s1a { background: var(--warning); } .s1b { background: #ffcc00; color: #000; } .s2 { background: var(--success); }
-
-        @media print { 
-            .no-print { display: none !important; } 
-            body { background: white !important; padding: 0; }
-            .container { box-shadow: none; margin: 0; width: 100%; padding: 0; } 
-            .pdf-card { border: none !important; }
-        }
+        .history-card { background: #fff; border: 1px solid #ddd; border-radius: 15px; padding: 15px; margin-top: 20px; }
+        .history-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #eee; }
+        .range-box { display: none; }
+        .range-box.active { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        @media print { .no-print { display: none !important; } .pdf-card { border: none; padding: 0; } }
     </style>
 </head>
-<body>
+<body onload="loadHistory()">
 
 <div class="container">
     <div id="setup">
-        <div class="app-logo">
-            <div class="icon-circle">🎧</div>
-            <h2 style="color:var(--primary); margin-top:10px;">Ομιλητική Ακουομετρία</h2>
-        </div>
+        <div class="app-logo"><div class="icon-circle">🎧</div><h2 style="color:var(--primary); margin: 10px 0;">Ομιλητική Ακουομετρία</h2></div>
         
         <div class="cal-box no-print">
-            <label style="color:white; margin:0;">Calibration (1kHz)</label>
-            <button id="calBtn" class="cal-btn" onclick="toggleCalibration()">Start Tone</button>
+            <span style="font-weight:bold;">CALIBRATION (1kHz)</span>
+            <button id="calBtn" class="cal-btn" onclick="toggleCalibration()">START</button>
         </div>
 
-        <div style="display:grid; grid-template-columns: 2fr 1fr; gap:15px;">
+        <div style="display:grid; grid-template-columns: 3fr 1fr; gap:10px;">
             <div><label>Ονοματεπώνυμο</label><input type="text" id="pName" placeholder="Ονοματεπώνυμο"></div>
-            <div><label>Ηλικία</label><input type="number" id="pAge" placeholder="π.χ. 45"></div>
+            <div><label>Ηλικία</label><input type="number" id="pAge" placeholder="Ηλικία"></div>
         </div>
 
         <label>ΠΛΕΥΡΑ ΕΞΕΤΑΣΗΣ</label>
@@ -86,100 +62,127 @@
             <div id="optR" class="ear-opt R" onclick="switchSide('R')">ΔΕΞΙ (R)</div>
         </div>
 
-        <div style="background:#f9f9fb; padding:20px; border-radius:20px; border:1px solid #ddd; margin-bottom:20px;">
+        <div style="background:#f9f9fb; padding:15px; border-radius:15px; border:1px solid #ddd; margin-bottom:15px;">
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
                 <div><label>Αρχικό SNR (dB)</label><input type="number" id="startSNR" value="10"></div>
                 <div><label>Τόνος Προσοχής</label><select id="preToneUse"><option value="yes">Ναι</option><option value="no">Όχι</option></select></div>
             </div>
-            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:10px;">
-                <div><label>Από Λέξη (#)</label><input type="number" id="wordStart" value="1"></div>
-                <div><label>Έως Λέξη (#)</label><input type="number" id="wordEnd" value="25"></div>
+
+            <div id="rangeL" class="range-box active">
+                <div><label>Αριστερό: Από #</label><input type="number" id="wordFromL" value="1"></div>
+                <div><label>Αριστερό: Έως #</label><input type="number" id="wordToL" value="25"></div>
             </div>
+
+            <div id="rangeR" class="range-box">
+                <div><label>Δεξί: Από #</label><input type="number" id="wordFromR" value="1"></div>
+                <div><label>Δεξί: Έως #</label><input type="number" id="wordToR" value="25"></div>
+            </div>
+
             <label for="lF" class="custom-file-upload" id="ll">📂 ΦΟΡΤΩΣΗ ΛΙΣΤΑΣ (.txt)</label><input type="file" id="lF" style="display:none" onchange="hSelect('list')">
             <label for="nF" class="custom-file-upload" id="ln">🔊 ΦΟΡΤΩΣΗ ΘΟΡΥΒΟΥ</label><input type="file" id="nF" style="display:none" onchange="hSelect('noise')">
             <label for="wF" class="custom-file-upload" id="lw">🎵 ΦΟΡΤΩΣΗ ΗΧΗΤΙΚΩΝ</label><input type="file" id="wF" style="display:none" multiple onchange="hSelect('words')">
         </div>
+        <button class="play-btn" style="font-size:20px;" onclick="runTest()">ΕΝΑΡΞΗ ΕΞΕΤΑΣΗΣ</button>
 
-        <button class="play-btn" onclick="runTest()">ΕΝΑΡΞΗ ΕΞΕΤΑΣΗΣ</button>
-
-        <div class="history-panel no-print">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-                <h3 style="margin:0; color:#444;">Ιστορικό Εξετάσεων</h3>
-                <button onclick="searchHistory()" style="padding:8px 15px; background:var(--primary); color:white; border:none; border-radius:8px; cursor:pointer;">🔍 Αναζήτηση</button>
-            </div>
-            <div class="history-list" id="hList">
-                <div class="history-header-row"><span>Ημερομηνία</span><span>Ασθενής</span><span>Αυτί</span><span>SRT</span></div>
-                <div id="hItems"></div>
-            </div>
+        <div class="history-card no-print">
+            <label>ΙΣΤΟΡΙΚΟ ΕΞΕΤΑΣΕΩΝ</label>
+            <div id="historyList"></div>
+            <button onclick="clearHistory()" style="width:100%; border:none; background:none; color:var(--danger); font-size:0.8em; margin-top:10px; cursor:pointer;">ΔΙΑΓΡΑΦΗ ΙΣΤΟΡΙΚΟΥ</button>
         </div>
     </div>
 
     <div id="testUI" style="display:none;">
-        <h3 id="earInd" style="text-align:center;"></h3>
+        <h2 id="earInd" style="text-align:center; padding:12px; border-radius:12px; margin-top:0; font-weight:900;"></h2>
         <div style="text-align:center;">
-            <div style="font-size:4em; font-weight:900; color:var(--primary); margin-bottom:0;" id="snrDisp">10 dB</div>
-            <div style="font-size:1.2em; font-weight:bold; color:#8e8e93; margin-top:-10px; margin-bottom:15px;" id="revDisp">Αναστροφές: 0/6</div>
+            <div style="font-size:4.5em; font-weight:900; color:var(--primary);" id="snrDisp">10 dB</div>
+            <div style="font-weight:800; color:#888;" id="revDisp">Αναστροφές: 0/6</div>
         </div>
-        <div class="graph-wrapper"><canvas id="cCanvas"></canvas></div>
-        <div style="text-align:center; font-size:3em; font-weight:900; background:#fff; padding:20px; border-radius:20px; border:4px solid var(--primary); margin:20px 0;" id="wDisp">---</div>
-        <button class="play-btn" onclick="playAudio()">▶ ΑΝΑΠΑΡΑΓΩΓΗ ΛΕΞΗΣ</button>
+        <canvas id="cCanvas"></canvas>
+        <div style="text-align:center; font-size:3.5em; font-weight:900; padding:20px; border:4px solid var(--primary); border-radius:20px; margin:15px 0; background:#fff;" id="wDisp">---</div>
+        <button class="play-btn" onclick="playAudio()">▶</button>
         <div class="scoring-grid">
             <button class="btn-score s0" onclick="handleScore(0)">0</button>
             <button class="btn-score s1a" onclick="handleScore(1,'a')">1α</button>
             <button class="btn-score s1b" onclick="handleScore(1,'b')">1β</button>
             <button class="btn-score s2" onclick="handleScore(2)">2</button>
         </div>
-        <div style="text-align:center; margin-top:20px;"><button onclick="undo()" style="background:none; border:none; color:#888; font-weight:bold; cursor:pointer;">⟲ ΑΝΑΙΡΕΣΗ (UNDO)</button></div>
+        <div style="text-align:center; margin-top:15px; display: flex; flex-direction: column; gap: 10px;">
+            <button onclick="undo()" style="color:#888; border:none; background:none; font-weight:bold; cursor:pointer;">⟲ UNDO</button>
+            <button onclick="stopAndReturn()" style="color:var(--danger); border:2px solid var(--danger); background:white; padding:12px; border-radius:12px; font-weight:bold; cursor:pointer; margin-top:10px;">🛑 ΔΙΑΚΟΠΗ & ΕΠΙΣΤΡΟΦΗ</button>
+        </div>
     </div>
 
     <div id="resUI" style="display:none;">
         <div class="pdf-card" id="printArea">
-            <h1 style="color:var(--primary); border-bottom: 6px solid var(--primary); padding-bottom:10px; margin:0 0 20px 0;">Αναφορά Εξέτασης</h1>
-            <div id="resMeta" style="font-size: 1.2em; line-height: 1.6; margin-bottom:20px;"></div>
+            <h1 style="color:var(--primary); border-bottom: 5px solid var(--primary); margin:0; padding-bottom:5px;">Αναφορά Εξέτασης</h1>
+            <div id="resMeta" style="margin:15px 0; font-size:1.15em; line-height:1.6;"></div>
             <div class="srt-box" id="srtFinal">0 dB</div>
-            <div class="graph-wrapper"><canvas id="fCanvas"></canvas></div>
+            <canvas id="fCanvas"></canvas>
             <table id="resTable"><thead><tr><th>#</th><th>Λέξη</th><th>SNR</th><th>Σκορ</th></tr></thead><tbody></tbody></table>
         </div>
-        <div class="no-print" style="margin-top:20px; display:grid; gap:12px;">
-            <button class="play-btn" onclick="smartPrint()">ΕΚΤΥΠΩΣΗ ΣΕ PDF</button>
-            <button class="play-btn" style="background:var(--success) !important;" onclick="exportToExcel()">ΕΞΑΓΩΓΗ ΣΕ EXCEL</button>
-            <button class="play-btn" style="background:var(--warning) !important;" onclick="saveAndNext()">ΑΠΟΘΗΚΕΥΣΗ & ΑΛΛΟ ΑΥΤΙ</button>
-            <button class="play-btn" style="background:#8e8e93 !important;" onclick="location.reload()">ΝΕΑ ΕΞΕΤΑΣΗ / ΑΡΧΙΚΗ</button>
+        <div class="no-print" style="margin-top:15px; display:grid; gap:12px;">
+            <button class="play-btn" style="font-size:18px;" onclick="smartPrint()">ΕΚΤΥΠΩΣΗ ΣΕ PDF</button>
+            <button class="play-btn" style="background:var(--success); font-size:18px;" onclick="exportToExcelV2()">ΕΞΑΓΩΓΗ ΣΕ EXCEL</button>
+            <button class="secondary-btn" onclick="saveAndNext()">ΑΠΟΘΗΚΕΥΣΗ & ΑΛΛΟ ΑΥΤΙ</button>
+            <button class="secondary-btn" style="background:#8e8e93" onclick="stopAndReturn()">ΝΕΑ ΕΞΕΤΑΣΗ / ΑΡΧΙΚΗ</button>
         </div>
     </div>
 </div>
 
+<iframe id="printFrame" style="display:none;"></iframe>
+
 <script>
     let audioCtx, curSide = 'L', calNode = null, gData = { list: {}, noise: null, words: {} };
     let state = { hist: [], revs: [], idx: 0, snr: 10, step: 2, lastD: null, activeWords: [] };
-    let historyDB = JSON.parse(localStorage.getItem('aud_pro_db_v49') || '[]');
 
-    function getFormattedDate() {
-        const d = new Date();
-        return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
+    function loadHistory() {
+        const h = JSON.parse(localStorage.getItem('audit_v63_history') || '[]');
+        const container = document.getElementById('historyList');
+        container.innerHTML = h.length === 0 ? '<p style="color:#999; text-align:center;">Κανένα αποτέλεσμα</p>' : '';
+        h.reverse().forEach((item, index) => {
+            const realIdx = h.length - 1 - index;
+            container.innerHTML += `<div class="history-item"><div><b>${item.name}</b><br><small>${item.date} | ${item.ear} | SRT: ${item.srt}dB</small></div><button onclick="viewResult(${realIdx})" style="background:var(--primary); color:white; border:none; padding:8px 12px; border-radius:8px; cursor:pointer;">👁️</button></div>`;
+        });
     }
+
+    function viewResult(idx) {
+        const h = JSON.parse(localStorage.getItem('audit_v63_history') || '[]');
+        const item = h[idx]; if(!item) return;
+        document.getElementById('pName').value = item.name;
+        document.getElementById('pAge').value = item.age;
+        curSide = item.side; state.hist = item.hist;
+        finish(item.srt);
+    }
+
+    function clearHistory() { if(confirm("Διαγραφή ιστορικού;")) { localStorage.removeItem('audit_v63_history'); loadHistory(); } }
 
     function toggleCalibration() {
         if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         const b = document.getElementById('calBtn');
-        if(calNode) { calNode.stop(); calNode = null; b.innerText="Start Tone"; }
+        if(calNode) { calNode.stop(); calNode = null; b.innerText="START"; }
         else {
             calNode = audioCtx.createOscillator(); const g = audioCtx.createGain(); const p = audioCtx.createStereoPanner();
-            p.pan.value = (curSide==='R'?1:-1); g.gain.value = 0.3; calNode.connect(g).connect(p).connect(audioCtx.destination);
-            calNode.start(); b.innerText="Stop Tone";
+            p.pan.value = (curSide==='R'?1:-1); g.gain.value = 0.25; calNode.connect(g).connect(p).connect(audioCtx.destination);
+            calNode.start(); b.innerText="STOP";
         }
     }
 
-    function switchSide(s) {
-        curSide = s; document.querySelectorAll('.ear-opt').forEach(el => el.classList.remove('active'));
-        document.getElementById('opt'+s).classList.add('active');
+    function switchSide(s) { 
+        curSide = s; 
+        document.querySelectorAll('.ear-opt').forEach(el => el.classList.remove('active')); 
+        document.getElementById('opt'+s).classList.add('active'); 
+        
+        // Εναλλαγή εμφάνισης εύρους λέξεων
+        document.getElementById('rangeL').classList.toggle('active', s === 'L');
+        document.getElementById('rangeR').classList.toggle('active', s === 'R');
     }
 
     async function hSelect(type) {
         if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         const input = document.getElementById(type==='list'?'lF':(type==='noise'?'nF':'wF'));
         if(type==='list') {
-            (await input.files[0].text()).split('\n').forEach((line, i) => {
+            const txt = await input.files[0].text();
+            txt.split('\n').forEach((line, i) => {
                 const parts = line.split(','); if(parts.length >= 3) gData.list[i+1] = {id:parts[0].trim(), s1:parts[1].trim(), s2:parts[2].trim()};
             });
             document.getElementById('ll').classList.add('file-selected');
@@ -193,32 +196,43 @@
     }
 
     function runTest() {
-        let available = [];
-        const startNum = parseInt(document.getElementById('wordStart').value) || 1;
-        const endNum = parseInt(document.getElementById('wordEnd').value) || 25;
-        for(let i = startNum; i <= endNum; i++) {
-            if(gData.list[i] && gData.words[gData.list[i].id]) {
-                available.push({...gData.list[i], buffer: gData.words[gData.list[i].id]});
-            }
-        }
-        if(!available.length) return alert("Δεν βρέθηκαν λέξεις στο εύρος!");
+        // Λήψη εύρους ανάλογα με το αυτί
+        let from = parseInt(document.getElementById(curSide === 'L' ? 'wordFromL' : 'wordFromR').value) || 1;
+        let to = parseInt(document.getElementById(curSide === 'L' ? 'wordToL' : 'wordToR').value) || 100;
         
+        let available = [];
+        for(let i = from; i <= to; i++) {
+            if(gData.list[i] && gData.words[gData.list[i].id]) available.push({...gData.list[i], buffer: gData.words[gData.list[i].id]});
+        }
+        if(!available.length) return alert("Παρακαλώ φορτώστε Λίστα και Ηχητικά για το επιλεγμένο εύρος!");
+        
+        available = available.sort(() => Math.random() - 0.5);
+
         state = { hist: [], revs: [], idx: 0, snr: parseFloat(document.getElementById('startSNR').value), step: 2, lastD: null, activeWords: available };
         document.getElementById('setup').style.display='none'; 
         document.getElementById('testUI').style.display='block';
-        document.getElementById('earInd').innerText = curSide==='L'?"ΑΥΤΙ: ΑΡΙΣΤΕΡΟ (L)":"ΑΥΤΙ: ΔΕΞΙ (R)";
+        
+        const ind = document.getElementById('earInd');
+        ind.innerText = curSide==='L'?"ΑΡΙΣΤΕΡΟ ΑΥΤΙ":"ΔΕΞΙ ΑΥΤΙ";
+        ind.style.color = curSide==='L'?'#007aff':'#ff3b30';
         updateUI();
+    }
+
+    function stopAndReturn() {
+        if(confirm("Είστε σίγουροι ότι θέλετε να διακόψετε;")) {
+            document.getElementById('testUI').style.display='none';
+            document.getElementById('resUI').style.display='none';
+            document.getElementById('setup').style.display='block';
+        }
     }
 
     async function playAudio() {
         if(audioCtx.state === 'suspended') await audioCtx.resume();
         if(document.getElementById('preToneUse').value === 'yes') {
             const o = audioCtx.createOscillator(), g = audioCtx.createGain(), p = audioCtx.createStereoPanner();
-            p.pan.value = (curSide === 'R' ? 1 : -1);
-            g.gain.setValueAtTime(0.2, audioCtx.currentTime);
-            o.connect(g).connect(p).connect(audioCtx.destination);
-            o.start(); o.stop(audioCtx.currentTime + 0.2);
-            await new Promise(r => setTimeout(r, 450));
+            p.pan.value = (curSide === 'R' ? 1 : -1); g.gain.setValueAtTime(0.15, audioCtx.currentTime);
+            o.connect(g).connect(p).connect(audioCtx.destination); o.start(); o.stop(audioCtx.currentTime + 0.15);
+            await new Promise(r => setTimeout(r, 400));
         }
         const b = state.activeWords[state.idx].buffer, out = audioCtx.createBuffer(2, b.length, b.sampleRate);
         for(let c=0; c<2; c++){
@@ -236,11 +250,20 @@
     function handleScore(val, type='') {
         const w = state.activeWords[state.idx];
         const isRev = (state.lastD && state.lastD !== (val===2?'down':'up'));
-        state.hist.push({ snr:state.snr, val, type, s1:w.s1, s2:w.s2, lastD:state.lastD, revs:[...state.revs], step:state.step, isRev: isRev });
+        state.hist.push({ snr:state.snr, val, type, s1:w.s1, s2:w.s2, lastD:state.lastD, revs:[...state.revs], step:state.step });
         if(isRev){ state.revs.push(state.snr); if(state.revs.length>=2) state.step=1; }
         state.lastD=val===2?'down':'up'; state.snr += (val===2?-state.step:state.step);
-        if(state.revs.length>=6 || state.idx >= state.activeWords.length - 1) return finish();
+        if(state.revs.length>=6 || state.idx >= state.activeWords.length - 1) {
+            const avg = state.revs.length > 0 ? (state.revs.reduce((a,b)=>a+b,0)/state.revs.length).toFixed(1) : state.snr;
+            saveRecord(avg); return finish(avg);
+        }
         state.idx++; updateUI();
+    }
+
+    function saveRecord(srt) {
+        const h = JSON.parse(localStorage.getItem('audit_v63_history') || '[]');
+        h.push({ name: document.getElementById('pName').value || 'Ανώνυμος', age: document.getElementById('pAge').value, date: new Date().toLocaleString('el-GR'), side: curSide, ear: curSide === 'L' ? 'Αριστερό' : 'Δεξί', srt: srt, hist: [...state.hist] });
+        localStorage.setItem('audit_v63_history', JSON.stringify(h)); loadHistory();
     }
 
     function updateUI() {
@@ -252,171 +275,87 @@
 
     function drawGraph(id, history, currentSNR) {
         const c=document.getElementById(id), ctx=c.getContext('2d');
-        if(!c) return;
-        c.width=c.offsetWidth * 2; c.height=c.offsetHeight * 2;
-        ctx.scale(2,2);
-        const w = c.width/2, h = c.height/2;
-        ctx.clearRect(0,0,w,h);
-        ctx.strokeStyle="#eee"; ctx.lineWidth=1;
+        if(!c) return; c.width=c.offsetWidth*2; c.height=c.offsetHeight*2; ctx.scale(2,2);
+        const w=c.width/2, h=c.height/2; ctx.clearRect(0,0,w,h);
+        ctx.strokeStyle="#e5e5ea"; ctx.lineWidth=1;
         for(let i=-10; i<=30; i+=10) {
-            let y = h - 40 - ((i+10)*(h-60)/40);
-            ctx.beginPath(); ctx.moveTo(40, y); ctx.lineTo(w-20, y); ctx.stroke();
-            ctx.fillStyle="#999"; ctx.font="10px Arial"; ctx.fillText(i+"dB", 5, y+5);
+            let y = h-40-((i+10)*(h-60)/40);
+            ctx.beginPath(); ctx.moveTo(40,y); ctx.lineTo(w-10,y); ctx.stroke();
+            ctx.fillStyle="#8e8e93"; ctx.font="bold 11px sans-serif"; ctx.fillText(i,5,y+4);
         }
-        const data = history.map(h => h.snr).concat(currentSNR);
-        if(data.length > 0) {
+        const data = history.map(h => h.snr).concat(currentSNR !== null ? currentSNR : []);
+        if(data.length>0){
             const color = curSide==='L'?'#007aff':'#ff3b30';
-            ctx.beginPath(); ctx.strokeStyle = color; ctx.lineWidth = 4;
-            data.forEach((v,i) => {
-                let x = 40 + (i * (w-80)/(data.length-1 || 1));
-                let y = h - 40 - ((v+10)*(h-60)/40);
-                if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+            ctx.beginPath(); ctx.strokeStyle=color; ctx.lineWidth=5; ctx.lineJoin="round";
+            data.forEach((v,i)=>{
+                let x=40+(i*(w-60)/(data.length-1||1)), y=h-40-((v+10)*(h-60)/40);
+                if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);
             });
             ctx.stroke();
-            data.forEach((v,i) => {
-                let x = 40 + (i * (w-80)/(data.length-1 || 1));
-                let y = h - 40 - ((v+10)*(h-60)/40);
-                const histEntry = history[i];
-                if(histEntry && histEntry.isRev) {
-                    ctx.strokeStyle = color; ctx.lineWidth = 4;
-                    ctx.beginPath(); ctx.moveTo(x-6, y-6); ctx.lineTo(x+6, y+6); ctx.moveTo(x+6, y-6); ctx.lineTo(x-6, y+6); ctx.stroke();
-                } else {
-                    ctx.fillStyle = color; ctx.beginPath(); ctx.arc(x,y,6,0,7); ctx.fill();
-                }
+            data.forEach((v,i)=>{
+                let x=40+(i*(w-60)/(data.length-1||1)), y=h-40-((v+10)*(h-60)/40);
+                ctx.fillStyle="#fff"; ctx.beginPath(); ctx.arc(x,y,6,0,Math.PI*2); ctx.fill();
+                ctx.strokeStyle=color; ctx.lineWidth=3; ctx.stroke();
             });
         }
     }
 
-    function finish() {
-        const avg = state.revs.length > 0 ? (state.revs.reduce((a,b)=>a+b,0)/state.revs.length).toFixed(1) : state.snr;
-        const patientData = {
-            name: document.getElementById('pName').value || 'Ανώνυμος',
-            age: document.getElementById('pAge').value || '---',
-            ear: curSide === 'L' ? 'Αριστερό' : 'Δεξί',
-            srt: avg,
-            date: getFormattedDate(),
-            history: [...state.hist],
-            finalSNR: state.snr
-        };
-        historyDB.push(patientData);
-        localStorage.setItem('aud_pro_db_v49', JSON.stringify(historyDB));
-        showResults(patientData);
-        renderHistory();
-    }
-
-    function showResults(data) {
-        document.getElementById('setup').style.display='none';
-        document.getElementById('testUI').style.display='none';
-        document.getElementById('resUI').style.display='block';
-        document.getElementById('resMeta').innerHTML = `Ασθενής: <b>${data.name}</b> | Ηλικία: <b>${data.age}</b> | Αυτί: <b>${data.ear}</b><br>Ημερομηνία: <b>${data.date}</b>`;
-        document.getElementById('srtFinal').innerText = data.srt + " dB";
-        setTimeout(() => drawGraph('fCanvas', data.history, data.finalSNR), 200);
+    function finish(avg) {
+        document.getElementById('setup').style.display='none'; document.getElementById('testUI').style.display='none'; document.getElementById('resUI').style.display='block';
+        document.getElementById('resMeta').innerHTML = `Ασθενής: <b>${document.getElementById('pName').value}</b> | Ηλικία: <b>${document.getElementById('pAge').value}</b> | Αυτί: <b>${curSide==='L'?'Αριστερό':'Δεξί'}</b><br>Ημερομηνία: <b>${new Date().toLocaleDateString('el-GR')}</b>`;
+        document.getElementById('srtFinal').innerText = avg + " dB";
+        setTimeout(() => drawGraph('fCanvas', state.hist, null), 300);
         const tb=document.querySelector('#resTable tbody'); tb.innerHTML="";
-        data.history.forEach((h,i)=>{
-            const s1c = (h.val===0||h.type==='b')?'strike-err':'';
-            const s2c = (h.val===0||h.type==='a')?'strike-err':'';
-            tb.insertRow().innerHTML=`<td>${i+1}</td><td><span class="${s1c}">${h.s1}</span><span class="${s2c}">${h.s2}</span>${h.isRev?' (R)':''}</td><td>${h.snr}</td><td>${h.val===2?'100%':(h.val===0?'0%':'50%')}</td>`;
+        state.hist.forEach((h,i)=>{
+            const s1c = (h.val===0||h.type==='b')?'strike-err':''; const s2c = (h.val===0||h.type==='a')?'strike-err':'';
+            tb.insertRow().innerHTML=`<td>${i+1}</td><td><span class="${s1c}">${h.s1}</span><span class="${s2c}">${h.s2}</span></td><td>${h.snr}</td><td>${h.val===2?'100%':(h.val===0?'0%':'50%')}</td>`;
         });
-    }
-
-    // EXCEL EXPORT WITH NATIVE GREEK SUPPORT (UTF-16LE)
-    function exportToExcel() {
-        let csv = "A/A\tΛέξη\tΣυλλαβή 1\tΚατάσταση 1\tΣυλλαβή 2\tΚατάσταση 2\tSNR\tΣκορ\tΑναστροφή\r\n";
-        state.hist.forEach((h,i) => {
-            const err1 = (h.val===0||h.type==='b') ? "ΛΑΘΟΣ" : "OK";
-            const err2 = (h.val===0||h.type==='a') ? "ΛΑΘΟΣ" : "OK";
-            csv += `${i+1}\t${h.s1}${h.s2}\t${h.s1}\t${err1}\t${h.s2}\t${err2}\t${h.snr}\t${h.val===2?'100%':(h.val===0?'0%':'50%')}\t${h.isRev?'ΝΑΙ':''}\r\n`;
-        });
-        
-        // Convert to UTF-16LE for native Excel support
-        const buffer = new ArrayBuffer(csv.length * 2 + 2);
-        const view = new DataView(buffer);
-        view.setUint16(0, 0xFEFF, true); // Little-endian BOM
-        for (let i = 0; i < csv.length; i++) {
-            view.setUint16((i + 1) * 2, csv.charCodeAt(i), true);
-        }
-        
-        const blob = new Blob([buffer], { type: 'application/vnd.ms-excel' });
-        const link = document.createElement("a");
-        link.href = URL.createObjectURL(blob);
-        link.download = `Result_${document.getElementById('pName').value}_${curSide}.xls`;
-        link.click();
-    }
-
-    // PDF PRINTING DIALOG
-    function smartPrint() {
-        const content = document.getElementById('printArea').innerHTML;
-        const canvas = document.getElementById('fCanvas');
-        const imgData = canvas.toDataURL("image/png");
-        const printWin = window.open('', '_blank');
-        
-        printWin.document.write(`
-            <html><head><title>Εκτύπωση Αναφοράς</title>
-            <style>
-                body { font-family: sans-serif; padding: 20px; }
-                .pdf-card { border: 2px solid #007aff; padding: 20px; border-radius: 20px; }
-                .srt-box { background: #34c759; color: white; padding: 20px; text-align: center; font-size: 3em; border-radius: 15px; margin: 20px 0; }
-                table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-                th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
-                th { background: #007aff; color: white; }
-                .strike-err { text-decoration: line-through; color: red; }
-                img { width: 100%; height: auto; border: 1px solid #eee; margin-top: 20px; }
-            </style></head><body>
-            <div class="pdf-card">${content}</div>
-            <script>
-                const canvasWrapper = document.querySelector('.graph-wrapper');
-                canvasWrapper.innerHTML = '<img src="${imgData}">';
-                window.onload = function() {
-                    window.focus();
-                    setTimeout(function() { window.print(); }, 1000);
-                };
-            <\/script></body></html>
-        `);
-        printWin.document.close();
     }
 
     function saveAndNext() {
-        const nextSide = curSide === 'L' ? 'R' : 'L';
-        switchSide(nextSide);
-        document.getElementById('resUI').style.display='none';
-        document.getElementById('setup').style.display='block';
+        switchSide(curSide === 'L' ? 'R' : 'L');
+        document.getElementById('resUI').style.display='none'; document.getElementById('setup').style.display='block';
     }
 
-    function renderHistory() {
-        const container = document.getElementById('hItems');
-        container.innerHTML = "";
-        historyDB.slice().reverse().forEach((item) => {
-            const div = document.createElement('div');
-            div.className = 'history-item';
-            div.innerHTML = `<span>${item.date}</span><span>${item.name}</span><span>${item.ear}</span><span>${item.srt} dB</span>`;
-            div.onclick = () => showResults(item);
-            container.appendChild(div);
+    function undo() { if(state.hist.length){ const l=state.hist.pop(); state.snr=l.snr; state.lastD=l.lastD; state.revs=l.revs; state.step=l.step; state.idx--; updateUI(); } }
+
+    function exportToExcelV2() {
+        const name = document.getElementById('pName').value || "Ασθενής";
+        let xml = `<?xml version="1.0"?><?mso-application progid="Excel.Sheet"?><Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">
+        <Styles><Style ss:ID="hdr"><Font ss:Bold="1"/><Interior ss:Color="#D7E4BC" ss:Pattern="Solid"/></Style></Styles>
+        <Worksheet ss:Name="Results"><Table>
+        <Column ss:Width="30"/><Column ss:Width="100"/><Column ss:Width="60"/><Column ss:Width="80"/><Column ss:Width="60"/><Column ss:Width="80"/><Column ss:Width="50"/><Column ss:Width="60"/>
+        <Row><Cell ss:StyleID="hdr"><Data ss:Type="String">A/A</Data></Cell><Cell ss:StyleID="hdr"><Data ss:Type="String">Λέξη</Data></Cell><Cell ss:StyleID="hdr"><Data ss:Type="String">Συλλαβή 1</Data></Cell><Cell ss:StyleID="hdr"><Data ss:Type="String">Κατάσταση 1</Data></Cell><Cell ss:StyleID="hdr"><Data ss:Type="String">Συλλαβή 2</Data></Cell><Cell ss:StyleID="hdr"><Data ss:Type="String">Κατάσταση 2</Data></Cell><Cell ss:StyleID="hdr"><Data ss:Type="String">SNR</Data></Cell><Cell ss:StyleID="hdr"><Data ss:Type="String">Σκορ</Data></Cell></Row>`;
+        state.hist.forEach((h, i) => {
+            let s1Stat = (h.val === 0 || h.type === 'b') ? "ΛΑΘΟΣ" : "ΣΩΣΤΟ";
+            let s2Stat = (h.val === 0 || h.type === 'a') ? "ΛΑΘΟΣ" : "ΣΩΣΤΟ";
+            let totalS = h.val === 2 ? "100%" : (h.val === 0 ? "0%" : "50%");
+            xml += `<Row>
+                <Cell><Data ss:Type="Number">${i + 1}</Data></Cell>
+                <Cell><Data ss:Type="String">${h.s1}${h.s2}</Data></Cell>
+                <Cell><Data ss:Type="String">${h.s1}</Data></Cell>
+                <Cell><Data ss:Type="String">${s1Stat}</Data></Cell>
+                <Cell><Data ss:Type="String">${h.s2}</Data></Cell>
+                <Cell><Data ss:Type="String">${s2Stat}</Data></Cell>
+                <Cell><Data ss:Type="Number">${h.snr}</Data></Cell>
+                <Cell><Data ss:Type="String">${totalS}</Data></Cell>
+            </Row>`;
         });
+        xml += `</Table></Worksheet></Workbook>`;
+        const blob = new Blob([xml], { type: "application/vnd.ms-excel" });
+        const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `Εξέταση_${name}.xls`; a.click();
     }
 
-    function searchHistory() {
-        const term = prompt("Αναζήτηση ονόματος:");
-        if(term === null) return;
-        const filtered = historyDB.filter(i => i.name.toLowerCase().includes(term.toLowerCase()));
-        const container = document.getElementById('hItems');
-        container.innerHTML = "";
-        filtered.slice().reverse().forEach(item => {
-            const div = document.createElement('div');
-            div.className = 'history-item';
-            div.innerHTML = `<span>${item.date}</span><span>${item.name}</span><span>${item.ear}</span><span>${item.srt} dB</span>`;
-            div.onclick = () => showResults(item);
-            container.appendChild(div);
-        });
+    function smartPrint() {
+        const frame = document.getElementById('printFrame');
+        const content = document.getElementById('printArea').innerHTML;
+        const canvas = document.getElementById('fCanvas');
+        const imgData = canvas.toDataURL("image/png");
+        const doc = frame.contentWindow.document;
+        doc.open();
+        doc.write(`<html><head><style>body{font-family:sans-serif;padding:20px;} .srt-box{background:#34c759;color:white;padding:20px;text-align:center;font-size:3em;border-radius:15px;} table{width:100%;border-collapse:collapse;} th,td{border:1px solid #ddd;padding:8px;text-align:center;} th{background:#007aff;color:white;} .strike-err{text-decoration:line-through;color:red;} img{width:100%;}</style></head><body>${content}<script>document.querySelector('canvas').outerHTML='<img src="${imgData}">'; window.onload=function(){window.print();};<\/script></body></html>`);
+        doc.close();
     }
-
-    function undo() {
-        if(!state.hist.length) return;
-        const l=state.hist.pop();
-        state.snr=l.snr; state.lastD=l.lastD; state.revs=l.revs; state.step=l.step;
-        state.idx--; updateUI();
-    }
-
-    renderHistory();
 </script>
 </body>
 </html>
