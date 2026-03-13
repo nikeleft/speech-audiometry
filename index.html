@@ -2,7 +2,7 @@
 <html lang="el">
 <head>
     <meta charset="UTF-8">
-    <title>Ομιλητική Ακουομετρία - V54</title>
+    <title>Ομιλητική Ακουομετρία - V55</title>
     <style>
         :root { --primary: #007aff; --success: #34c759; --danger: #ff3b30; --warning: #ff9500; --bg: #f2f2f7; --card: #ffffff; }
         * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
@@ -141,7 +141,7 @@
             <table id="resTable"><thead><tr><th>#</th><th>Λέξη</th><th>SNR</th><th>Σκορ</th></tr></thead><tbody></tbody></table>
         </div>
         <div class="no-print" style="margin-top:20px; display:grid; gap:12px;">
-            <button class="play-btn" onclick="smartPrint()">ΕΚΤΥΠΩΣΗ ΑΝΑΦΟΡΑΣ</button>
+            <button class="play-btn" onclick="smartPrint()">ΕΚΤΥΠΩΣΗ ΣΕ PDF</button>
             <button class="play-btn" style="background:var(--success) !important;" onclick="exportToExcel()">ΕΞΑΓΩΓΗ ΣΕ EXCEL</button>
             <button class="play-btn" style="background:var(--warning) !important;" onclick="saveAndNext()">ΑΠΟΘΗΚΕΥΣΗ & ΑΛΛΟ ΑΥΤΙ</button>
             <button class="play-btn" style="background:#8e8e93 !important;" onclick="location.reload()">ΝΕΑ ΕΞΕΤΑΣΗ / ΑΡΧΙΚΗ</button>
@@ -319,31 +319,31 @@
         });
     }
 
+    // EXCEL EXPORT WITH NATIVE GREEK SUPPORT (UTF-16LE)
     function exportToExcel() {
-        // STRONG UTF-8 ENCODING FOR GREEK
-        let csv = "sep=;\n";
-        csv += "A/A;Λέξη;Συλλαβή 1;Κατάσταση 1;Συλλαβή 2;Κατάσταση 2;SNR;Σκορ;Αναστροφή\n";
+        let csv = "A/A\tΛέξη\tΣυλλαβή 1\tΚατάσταση 1\tΣυλλαβή 2\tΚατάσταση 2\tSNR\tΣκορ\tΑναστροφή\r\n";
         state.hist.forEach((h,i) => {
             const err1 = (h.val===0||h.type==='b') ? "ΛΑΘΟΣ" : "OK";
             const err2 = (h.val===0||h.type==='a') ? "ΛΑΘΟΣ" : "OK";
-            csv += `${i+1};${h.s1}${h.s2};${h.s1};${err1};${h.s2};${err2};${h.snr};${h.val===2?'100%':(h.val===0?'0%':'50%')};${h.isRev?'NAI':''}\n`;
+            csv += `${i+1}\t${h.s1}${h.s2}\t${h.s1}\t${err1}\t${h.s2}\t${err2}\t${h.snr}\t${h.val===2?'100%':(h.val===0?'0%':'50%')}\t${h.isRev?'ΝΑΙ':''}\r\n`;
         });
         
-        const encoder = new TextEncoder();
-        const arrayBuffer = encoder.encode(csv);
-        // Add UTF-8 BOM (Byte Order Mark) explicitly
-        const bom = new Uint8Array([0xEF, 0xBB, 0xBF]);
-        const combined = new Uint8Array(bom.length + arrayBuffer.length);
-        combined.set(bom);
-        combined.set(arrayBuffer, bom.length);
-
-        const blob = new Blob([combined], { type: 'text/csv;charset=utf-8;' });
+        // Convert to UTF-16LE for native Excel support
+        const buffer = new ArrayBuffer(csv.length * 2 + 2);
+        const view = new DataView(buffer);
+        view.setUint16(0, 0xFEFF, true); // Little-endian BOM
+        for (let i = 0; i < csv.length; i++) {
+            view.setUint16((i + 1) * 2, csv.charCodeAt(i), true);
+        }
+        
+        const blob = new Blob([buffer], { type: 'application/vnd.ms-excel' });
         const link = document.createElement("a");
         link.href = URL.createObjectURL(blob);
-        link.download = `Result_${document.getElementById('pName').value}_${curSide}.csv`;
+        link.download = `Result_${document.getElementById('pName').value}_${curSide}.xls`;
         link.click();
     }
 
+    // PDF PRINTING DIALOG
     function smartPrint() {
         const content = document.getElementById('printArea').innerHTML;
         const canvas = document.getElementById('fCanvas');
@@ -368,7 +368,7 @@
                 canvasWrapper.innerHTML = '<img src="${imgData}">';
                 window.onload = function() {
                     window.focus();
-                    setTimeout(function() { window.print(); }, 800);
+                    setTimeout(function() { window.print(); }, 1000);
                 };
             <\/script></body></html>
         `);
