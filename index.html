@@ -2,14 +2,13 @@
 <html lang="el">
 <head>
     <meta charset="UTF-8">
-    <title>Ομιλητική Ακουομετρία - V52</title>
+    <title>Ομιλητική Ακουομετρία - V53</title>
     <style>
         :root { --primary: #007aff; --success: #34c759; --danger: #ff3b30; --warning: #ff9500; --bg: #f2f2f7; --card: #ffffff; }
         * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
         body { font-family: -apple-system, system-ui, sans-serif; padding: 20px; background: var(--bg); color: #1c1c1e; margin: 0; }
         .container { max-width: 850px; margin: 20px auto; background: var(--card); padding: 40px; border-radius: 30px; box-shadow: 0 20px 40px rgba(0,0,0,0.05); }
         
-        /* App Icon Style */
         .app-logo { text-align: center; margin-bottom: 20px; }
         .icon-circle { width: 80px; height: 80px; background: var(--primary); border-radius: 20px; display: inline-flex; align-items: center; justify-content: center; color: white; font-size: 40px; box-shadow: 0 10px 20px rgba(0,122,255,0.3); }
 
@@ -142,8 +141,8 @@
             <table id="resTable"><thead><tr><th>#</th><th>Λέξη</th><th>SNR</th><th>Σκορ</th></tr></thead><tbody></tbody></table>
         </div>
         <div class="no-print" style="margin-top:20px; display:grid; gap:12px;">
-            <button class="play-btn" onclick="smartPrint()">ΕΚΤΥΠΩΣΗ ΑΝΑΦΟΡΑΣ (Tablet OK)</button>
-            <button class="play-btn" style="background:var(--success) !important;" onclick="exportToExcel()">ΕΞΑΓΩΓΗ ΣΕ EXCEL (FIXED)</button>
+            <button class="play-btn" onclick="smartPrint()">ΕΚΤΥΠΩΣΗ ΑΝΑΦΟΡΑΣ</button>
+            <button class="play-btn" style="background:var(--success) !important;" onclick="exportToExcel()">ΕΞΑΓΩΓΗ ΣΕ EXCEL</button>
             <button class="play-btn" style="background:var(--warning) !important;" onclick="saveAndNext()">ΑΠΟΘΗΚΕΥΣΗ & ΑΛΛΟ ΑΥΤΙ</button>
             <button class="play-btn" style="background:#8e8e93 !important;" onclick="location.reload()">ΝΕΑ ΕΞΕΤΑΣΗ / ΑΡΧΙΚΗ</button>
         </div>
@@ -204,11 +203,7 @@
         }
         if(!available.length) return alert("Δεν βρέθηκαν λέξεις στο εύρος!");
         
-        state = { 
-            hist: [], revs: [], idx: 0, 
-            snr: parseFloat(document.getElementById('startSNR').value), 
-            step: 2, lastD: null, activeWords: available 
-        };
+        state = { hist: [], revs: [], idx: 0, snr: parseFloat(document.getElementById('startSNR').value), step: 2, lastD: null, activeWords: available };
         document.getElementById('setup').style.display='none'; 
         document.getElementById('testUI').style.display='block';
         document.getElementById('earInd').innerText = curSide==='L'?"ΑΥΤΙ: ΑΡΙΣΤΕΡΟ (L)":"ΑΥΤΙ: ΔΕΞΙ (R)";
@@ -241,18 +236,9 @@
     function handleScore(val, type='') {
         const w = state.activeWords[state.idx];
         const isRev = (state.lastD && state.lastD !== (val===2?'down':'up'));
-        state.hist.push({
-            snr:state.snr, val, type, s1:w.s1, s2:w.s2, lastD:state.lastD, 
-            revs:[...state.revs], step:state.step, isRev: isRev
-        });
-        
-        const dir = val===2?'down':'up';
-        if(isRev){ 
-            state.revs.push(state.snr); 
-            if(state.revs.length>=2) state.step=1; 
-        }
-        state.lastD=dir; state.snr += (val===2?-state.step:state.step);
-        
+        state.hist.push({ snr:state.snr, val, type, s1:w.s1, s2:w.s2, lastD:state.lastD, revs:[...state.revs], step:state.step, isRev: isRev });
+        if(isRev){ state.revs.push(state.snr); if(state.revs.length>=2) state.step=1; }
+        state.lastD=val===2?'down':'up'; state.snr += (val===2?-state.step:state.step);
         if(state.revs.length>=6 || state.idx >= state.activeWords.length - 1) return finish();
         state.idx++; updateUI();
     }
@@ -271,14 +257,12 @@
         ctx.scale(2,2);
         const w = c.width/2, h = c.height/2;
         ctx.clearRect(0,0,w,h);
-        
         ctx.strokeStyle="#eee"; ctx.lineWidth=1;
         for(let i=-10; i<=30; i+=10) {
             let y = h - 40 - ((i+10)*(h-60)/40);
             ctx.beginPath(); ctx.moveTo(40, y); ctx.lineTo(w-20, y); ctx.stroke();
             ctx.fillStyle="#999"; ctx.font="10px Arial"; ctx.fillText(i+"dB", 5, y+5);
         }
-
         const data = history.map(h => h.snr).concat(currentSNR);
         if(data.length > 0) {
             const color = curSide==='L'?'#007aff':'#ff3b30';
@@ -289,15 +273,13 @@
                 if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
             });
             ctx.stroke();
-
             data.forEach((v,i) => {
                 let x = 40 + (i * (w-80)/(data.length-1 || 1));
                 let y = h - 40 - ((v+10)*(h-60)/40);
                 const histEntry = history[i];
                 if(histEntry && histEntry.isRev) {
                     ctx.strokeStyle = color; ctx.lineWidth = 4;
-                    ctx.beginPath(); ctx.moveTo(x-6, y-6); ctx.lineTo(x+6, y+6);
-                    ctx.moveTo(x+6, y-6); ctx.lineTo(x-6, y+6); ctx.stroke();
+                    ctx.beginPath(); ctx.moveTo(x-6, y-6); ctx.lineTo(x+6, y+6); ctx.moveTo(x+6, y-6); ctx.lineTo(x-6, y+6); ctx.stroke();
                 } else {
                     ctx.fillStyle = color; ctx.beginPath(); ctx.arc(x,y,6,0,7); ctx.fill();
                 }
@@ -337,10 +319,10 @@
         });
     }
 
-    // FIXED EXCEL EXPORT FOR GREEK SYSTEMS
+    // FIXED EXCEL EXPORT WITH GREEK UTF-8 BOM
     function exportToExcel() {
-        const bom = "\uFEFF";
-        let csv = "sep=;\n"; // Force Excel to recognize semicolon
+        const bom = "\uFEFF"; // Byte Order Mark for UTF-8 (Vital for Greek characters in Excel)
+        let csv = "sep=;\n";
         csv += "A/A;Λέξη;Συλλαβή 1;Κατάσταση 1;Συλλαβή 2;Κατάσταση 2;SNR;Σκορ;Αναστροφή\n";
         state.hist.forEach((h,i) => {
             const err1 = (h.val===0||h.type==='b') ? "ΛΑΘΟΣ" : "OK";
@@ -354,12 +336,11 @@
         link.click();
     }
 
-    // TABLET FRIENDLY PRINTING
+    // TABLET FRIENDLY PRINTING WITH AUTOMATIC DIALOG
     function smartPrint() {
         const content = document.getElementById('printArea').innerHTML;
         const canvas = document.getElementById('fCanvas');
         const imgData = canvas.toDataURL("image/png");
-        
         const printWin = window.open('', '_blank');
         printWin.document.write(`
             <html><head><title>Εκτύπωση Αναφοράς</title>
@@ -375,10 +356,12 @@
             </style></head><body>
             <div class="pdf-card">${content}</div>
             <script>
-                // Αντικατάσταση του live canvas με στατική εικόνα για την εκτύπωση
                 const canvasWrapper = document.querySelector('.graph-wrapper');
                 canvasWrapper.innerHTML = '<img src="${imgData}">';
-                setTimeout(() => { window.print(); }, 500);
+                window.onload = function() {
+                    window.focus();
+                    setTimeout(function() { window.print(); window.close(); }, 500);
+                };
             <\/script></body></html>
         `);
         printWin.document.close();
