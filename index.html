@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Ομιλητική Ακουομετρία - V66</title>
+    <title>Ομιλητική Ακουομετρία - V67</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         :root { --primary: #007aff; --success: #34c759; --danger: #ff3b30; --warning: #ff9500; --bg: #f2f2f7; --card: #ffffff; }
         * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
@@ -33,11 +34,10 @@
         .scoring-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
         .btn-score { border: none; border-radius: 15px; padding: 20px 0; font-weight: 900; font-size: 1.8em; color: #fff; cursor: pointer; }
         .s0 { background: var(--danger); } .s1a { background: var(--warning); } .s1b { background: #ffcc00; color: #000; } .s2 { background: var(--success); }
-        .history-card { background: #fff; border: 1px solid #ddd; border-radius: 15px; padding: 15px; margin-top: 20px; }
-        .history-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #eee; }
         .range-box { display: none; }
         .range-box.active { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        @media print { .no-print { display: none !important; } .pdf-card { border: none; padding: 0; } }
+        #historyList { margin-top: 10px; }
+        .history-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #eee; }
     </style>
 </head>
 <body onload="loadHistory()">
@@ -46,7 +46,7 @@
     <div id="setup">
         <div class="app-logo"><div class="icon-circle">🎧</div><h2 style="color:var(--primary); margin: 10px 0;">Ομιλητική Ακουομετρία</h2></div>
         
-        <div class="cal-box no-print">
+        <div class="cal-box">
             <span style="font-weight:bold;">CALIBRATION (1kHz)</span>
             <button id="calBtn" class="cal-btn" onclick="toggleCalibration()">START</button>
         </div>
@@ -69,13 +69,12 @@
             </div>
 
             <div id="rangeL" class="range-box active">
-                <div><label>Αριστερό: Από #</label><input type="number" id="wordFromL" value="1"></div>
-                <div><label>Αριστερό: Έως #</label><input type="number" id="wordToL" value="25"></div>
+                <div><label>L: Από λέξη #</label><input type="number" id="wordFromL" value="1"></div>
+                <div><label>L: Έως λέξη #</label><input type="number" id="wordToL" value="25"></div>
             </div>
-
             <div id="rangeR" class="range-box">
-                <div><label>Δεξί: Από #</label><input type="number" id="wordFromR" value="1"></div>
-                <div><label>Δεξί: Έως #</label><input type="number" id="wordToR" value="25"></div>
+                <div><label>R: Από λέξη #</label><input type="number" id="wordFromR" value="1"></div>
+                <div><label>R: Έως λέξη #</label><input type="number" id="wordToR" value="25"></div>
             </div>
 
             <label for="lF" class="custom-file-upload" id="ll">📂 ΦΟΡΤΩΣΗ ΛΙΣΤΑΣ (.txt)</label><input type="file" id="lF" style="display:none" onchange="hSelect('list')">
@@ -84,8 +83,8 @@
         </div>
         <button class="play-btn" style="font-size:20px;" onclick="runTest()">ΕΝΑΡΞΗ ΕΞΕΤΑΣΗΣ</button>
 
-        <div class="history-card no-print">
-            <label>ΙΣΤΟΡΙΚΟ ΕΞΕΤΑΣΕΩΝ</label>
+        <div style="background: #fff; border: 1px solid #ddd; border-radius: 15px; padding: 15px; margin-top: 20px;">
+            <label>ΙΣΤΟΡΙΚΟ</label>
             <div id="historyList"></div>
             <button onclick="clearHistory()" style="width:100%; border:none; background:none; color:var(--danger); font-size:0.8em; margin-top:10px; cursor:pointer;">ΔΙΑΓΡΑΦΗ ΙΣΤΟΡΙΚΟΥ</button>
         </div>
@@ -108,7 +107,7 @@
         </div>
         <div style="text-align:center; margin-top:15px; display: flex; flex-direction: column; gap: 10px;">
             <button onclick="undo()" style="color:#888; border:none; background:none; font-weight:bold; cursor:pointer;">⟲ UNDO</button>
-            <button onclick="stopAndReturn()" style="color:var(--danger); border:2px solid var(--danger); background:white; padding:12px; border-radius:12px; font-weight:bold; cursor:pointer; margin-top:10px;">🛑 ΔΙΑΚΟΠΗ & ΕΠΙΣΤΡΟΦΗ</button>
+            <button onclick="stopAndReturn()" style="color:var(--danger); border:2px solid var(--danger); background:white; padding:12px; border-radius:12px; font-weight:bold; cursor:pointer;">🛑 ΔΙΑΚΟΠΗ & ΕΠΙΣΤΡΟΦΗ</button>
         </div>
     </div>
 
@@ -117,62 +116,28 @@
             <h1 style="color:var(--primary); border-bottom: 5px solid var(--primary); margin:0; padding-bottom:5px;">Αναφορά Εξέτασης</h1>
             <div id="resMeta" style="margin:15px 0; font-size:1.15em; line-height:1.6;"></div>
             <div class="srt-box" id="srtFinal">0 dB</div>
-            <canvas id="fCanvas"></canvas>
+            <div id="chartContainer">
+                 <canvas id="fCanvas"></canvas>
+            </div>
             <table id="resTable"><thead><tr><th>#</th><th>Λέξη</th><th>SNR</th><th>Σκορ</th></tr></thead><tbody></tbody></table>
         </div>
-        <div class="no-print" style="margin-top:15px; display:grid; gap:12px;">
-            <button class="play-btn" style="font-size:18px;" onclick="smartPrint()">ΕΚΤΥΠΩΣΗ ΣΕ PDF</button>
+        <div style="margin-top:15px; display:grid; gap:12px;">
+            <button class="play-btn" style="font-size:18px;" onclick="smartPDFDownload()">ΛΗΨΗ PDF (ANDROID)</button>
             <button class="play-btn" style="background:var(--success); font-size:18px;" onclick="exportToExcelV2()">ΕΞΑΓΩΓΗ ΣΕ EXCEL</button>
             <button class="secondary-btn" onclick="saveAndNext()">ΑΠΟΘΗΚΕΥΣΗ & ΑΛΛΟ ΑΥΤΙ</button>
-            <button class="secondary-btn" style="background:#8e8e93" onclick="stopAndReturn()">ΝΕΑ ΕΞΕΤΑΣΗ / ΑΡΧΙΚΗ</button>
+            <button class="secondary-btn" style="background:#8e8e93" onclick="stopAndReturn()">ΕΠΙΣΤΡΟΦΗ ΣΤΗΝ ΑΡΧΙΚΗ</button>
         </div>
     </div>
 </div>
-
-<iframe id="printFrame" style="display:none;"></iframe>
 
 <script>
     let audioCtx, curSide = 'L', calNode = null, gData = { list: {}, noise: null, words: {} };
     let state = { hist: [], revs: [], idx: 0, snr: 10, step: 2, lastD: null, activeWords: [] };
 
-    function loadHistory() {
-        const h = JSON.parse(localStorage.getItem('audit_v63_history') || '[]');
-        const container = document.getElementById('historyList');
-        container.innerHTML = h.length === 0 ? '<p style="color:#999; text-align:center;">Κανένα αποτέλεσμα</p>' : '';
-        h.reverse().forEach((item, index) => {
-            const realIdx = h.length - 1 - index;
-            container.innerHTML += `<div class="history-item"><div><b>${item.name}</b><br><small>${item.date} | ${item.ear} | SRT: ${item.srt}dB</small></div><button onclick="viewResult(${realIdx})" style="background:var(--primary); color:white; border:none; padding:8px 12px; border-radius:8px; cursor:pointer;">👁️</button></div>`;
-        });
-    }
-
-    function viewResult(idx) {
-        const h = JSON.parse(localStorage.getItem('audit_v63_history') || '[]');
-        const item = h[idx]; if(!item) return;
-        document.getElementById('pName').value = item.name;
-        document.getElementById('pAge').value = item.age;
-        curSide = item.side; state.hist = item.hist;
-        finish(item.srt);
-    }
-
-    function clearHistory() { if(confirm("Διαγραφή ιστορικού;")) { localStorage.removeItem('audit_v63_history'); loadHistory(); } }
-
-    function toggleCalibration() {
-        if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        const b = document.getElementById('calBtn');
-        if(calNode) { calNode.stop(); calNode = null; b.innerText="START"; }
-        else {
-            calNode = audioCtx.createOscillator(); const g = audioCtx.createGain(); const p = audioCtx.createStereoPanner();
-            p.pan.value = (curSide==='R'?1:-1); g.gain.value = 0.25; calNode.connect(g).connect(p).connect(audioCtx.destination);
-            calNode.start(); b.innerText="STOP";
-        }
-    }
-
     function switchSide(s) { 
         curSide = s; 
         document.querySelectorAll('.ear-opt').forEach(el => el.classList.remove('active')); 
         document.getElementById('opt'+s).classList.add('active'); 
-        
-        // Εναλλαγή εμφάνισης εύρους λέξεων
         document.getElementById('rangeL').classList.toggle('active', s === 'L');
         document.getElementById('rangeR').classList.toggle('active', s === 'R');
     }
@@ -196,22 +161,19 @@
     }
 
     function runTest() {
-        // Λήψη εύρους ανάλογα με το αυτί
         let from = parseInt(document.getElementById(curSide === 'L' ? 'wordFromL' : 'wordFromR').value) || 1;
         let to = parseInt(document.getElementById(curSide === 'L' ? 'wordToL' : 'wordToR').value) || 100;
-        
         let available = [];
         for(let i = from; i <= to; i++) {
             if(gData.list[i] && gData.words[gData.list[i].id]) available.push({...gData.list[i], buffer: gData.words[gData.list[i].id]});
         }
-        if(!available.length) return alert("Παρακαλώ φορτώστε Λίστα και Ηχητικά για το επιλεγμένο εύρος!");
+        if(!available.length) return alert("Σφάλμα: Δεν βρέθηκαν λέξεις στο εύρος που ορίσατε.");
         
         available = available.sort(() => Math.random() - 0.5);
-
         state = { hist: [], revs: [], idx: 0, snr: parseFloat(document.getElementById('startSNR').value), step: 2, lastD: null, activeWords: available };
+        
         document.getElementById('setup').style.display='none'; 
         document.getElementById('testUI').style.display='block';
-        
         const ind = document.getElementById('earInd');
         ind.innerText = curSide==='L'?"ΑΡΙΣΤΕΡΟ ΑΥΤΙ":"ΔΕΞΙ ΑΥΤΙ";
         ind.style.color = curSide==='L'?'#007aff':'#ff3b30';
@@ -219,7 +181,7 @@
     }
 
     function stopAndReturn() {
-        if(confirm("Είστε σίγουροι ότι θέλετε να διακόψετε;")) {
+        if(confirm("Επιστροφή στην αρχική οθόνη; Τα στοιχεία θα διατηρηθούν.")) {
             document.getElementById('testUI').style.display='none';
             document.getElementById('resUI').style.display='none';
             document.getElementById('setup').style.display='block';
@@ -260,12 +222,6 @@
         state.idx++; updateUI();
     }
 
-    function saveRecord(srt) {
-        const h = JSON.parse(localStorage.getItem('audit_v63_history') || '[]');
-        h.push({ name: document.getElementById('pName').value || 'Ανώνυμος', age: document.getElementById('pAge').value, date: new Date().toLocaleString('el-GR'), side: curSide, ear: curSide === 'L' ? 'Αριστερό' : 'Δεξί', srt: srt, hist: [...state.hist] });
-        localStorage.setItem('audit_v63_history', JSON.stringify(h)); loadHistory();
-    }
-
     function updateUI() {
         document.getElementById('snrDisp').innerText = state.snr + " dB";
         document.getElementById('revDisp').innerText = "Αναστροφές: " + state.revs.length + "/6";
@@ -301,7 +257,7 @@
     }
 
     function finish(avg) {
-        document.getElementById('setup').style.display='none'; document.getElementById('testUI').style.display='none'; document.getElementById('resUI').style.display='block';
+        document.getElementById('testUI').style.display='none'; document.getElementById('resUI').style.display='block';
         document.getElementById('resMeta').innerHTML = `Ασθενής: <b>${document.getElementById('pName').value}</b> | Ηλικία: <b>${document.getElementById('pAge').value}</b> | Αυτί: <b>${curSide==='L'?'Αριστερό':'Δεξί'}</b><br>Ημερομηνία: <b>${new Date().toLocaleDateString('el-GR')}</b>`;
         document.getElementById('srtFinal').innerText = avg + " dB";
         setTimeout(() => drawGraph('fCanvas', state.hist, null), 300);
@@ -312,6 +268,47 @@
         });
     }
 
+    async function smartPDFDownload() {
+        const element = document.getElementById('printArea');
+        const canvas = document.getElementById('fCanvas');
+        const name = document.getElementById('pName').value || "Result";
+        
+        // Convert canvas to image for PDF compatibility
+        const imgData = canvas.toDataURL("image/png");
+        const img = document.createElement('img');
+        img.src = imgData; img.style.width = '100%';
+        
+        const container = document.getElementById('chartContainer');
+        canvas.style.display = 'none';
+        container.appendChild(img);
+
+        const opt = {
+            margin: 10,
+            filename: `Audit_Result_${name}.pdf`,
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2, useCORS: true },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+
+        try {
+            await html2pdf().set(opt).from(element).save();
+        } finally {
+            img.remove();
+            canvas.style.display = 'block';
+        }
+    }
+
+    function toggleCalibration() {
+        if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const b = document.getElementById('calBtn');
+        if(calNode) { calNode.stop(); calNode = null; b.innerText="START"; }
+        else {
+            calNode = audioCtx.createOscillator(); const g = audioCtx.createGain(); const p = audioCtx.createStereoPanner();
+            p.pan.value = (curSide==='R'?1:-1); g.gain.value = 0.25; calNode.connect(g).connect(p).connect(audioCtx.destination);
+            calNode.start(); b.innerText="STOP";
+        }
+    }
+
     function saveAndNext() {
         switchSide(curSide === 'L' ? 'R' : 'L');
         document.getElementById('resUI').style.display='none'; document.getElementById('setup').style.display='block';
@@ -319,42 +316,34 @@
 
     function undo() { if(state.hist.length){ const l=state.hist.pop(); state.snr=l.snr; state.lastD=l.lastD; state.revs=l.revs; state.step=l.step; state.idx--; updateUI(); } }
 
+    function saveRecord(srt) {
+        const h = JSON.parse(localStorage.getItem('audit_v63_history') || '[]');
+        h.push({ name: document.getElementById('pName').value || 'Ανώνυμος', age: document.getElementById('pAge').value, date: new Date().toLocaleString('el-GR'), side: curSide, ear: curSide === 'L' ? 'Αριστερό' : 'Δεξί', srt: srt, hist: [...state.hist] });
+        localStorage.setItem('audit_v63_history', JSON.stringify(h)); loadHistory();
+    }
+
+    function loadHistory() {
+        const h = JSON.parse(localStorage.getItem('audit_v63_history') || '[]');
+        const container = document.getElementById('historyList');
+        container.innerHTML = h.length === 0 ? '<p style="color:#999; text-align:center;">Κανένα αποτέλεσμα</p>' : '';
+        h.slice(-5).reverse().forEach(item => {
+            container.innerHTML += `<div class="history-item"><div><b>${item.name}</b><br><small>${item.date} | ${item.ear} | SRT: ${item.srt}dB</small></div></div>`;
+        });
+    }
+
+    function clearHistory() { if(confirm("Διαγραφή ιστορικού;")) { localStorage.removeItem('audit_v63_history'); loadHistory(); } }
+
     function exportToExcelV2() {
-        const name = document.getElementById('pName').value || "Ασθενής";
-        let xml = `<?xml version="1.0"?><?mso-application progid="Excel.Sheet"?><Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">
-        <Styles><Style ss:ID="hdr"><Font ss:Bold="1"/><Interior ss:Color="#D7E4BC" ss:Pattern="Solid"/></Style></Styles>
+        const name = document.getElementById('pName').value || "Patient";
+        let xml = `<?xml version="1.0"?><?mso-application progid="Excel.Sheet"?><Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">
         <Worksheet ss:Name="Results"><Table>
-        <Column ss:Width="30"/><Column ss:Width="100"/><Column ss:Width="60"/><Column ss:Width="80"/><Column ss:Width="60"/><Column ss:Width="80"/><Column ss:Width="50"/><Column ss:Width="60"/>
-        <Row><Cell ss:StyleID="hdr"><Data ss:Type="String">A/A</Data></Cell><Cell ss:StyleID="hdr"><Data ss:Type="String">Λέξη</Data></Cell><Cell ss:StyleID="hdr"><Data ss:Type="String">Συλλαβή 1</Data></Cell><Cell ss:StyleID="hdr"><Data ss:Type="String">Κατάσταση 1</Data></Cell><Cell ss:StyleID="hdr"><Data ss:Type="String">Συλλαβή 2</Data></Cell><Cell ss:StyleID="hdr"><Data ss:Type="String">Κατάσταση 2</Data></Cell><Cell ss:StyleID="hdr"><Data ss:Type="String">SNR</Data></Cell><Cell ss:StyleID="hdr"><Data ss:Type="String">Σκορ</Data></Cell></Row>`;
+        <Row><Cell><Data ss:Type="String">A/A</Data></Cell><Cell><Data ss:Type="String">Word</Data></Cell><Cell><Data ss:Type="String">SNR</Data></Cell><Cell><Data ss:Type="String">Score</Data></Cell></Row>`;
         state.hist.forEach((h, i) => {
-            let s1Stat = (h.val === 0 || h.type === 'b') ? "ΛΑΘΟΣ" : "ΣΩΣΤΟ";
-            let s2Stat = (h.val === 0 || h.type === 'a') ? "ΛΑΘΟΣ" : "ΣΩΣΤΟ";
-            let totalS = h.val === 2 ? "100%" : (h.val === 0 ? "0%" : "50%");
-            xml += `<Row>
-                <Cell><Data ss:Type="Number">${i + 1}</Data></Cell>
-                <Cell><Data ss:Type="String">${h.s1}${h.s2}</Data></Cell>
-                <Cell><Data ss:Type="String">${h.s1}</Data></Cell>
-                <Cell><Data ss:Type="String">${s1Stat}</Data></Cell>
-                <Cell><Data ss:Type="String">${h.s2}</Data></Cell>
-                <Cell><Data ss:Type="String">${s2Stat}</Data></Cell>
-                <Cell><Data ss:Type="Number">${h.snr}</Data></Cell>
-                <Cell><Data ss:Type="String">${totalS}</Data></Cell>
-            </Row>`;
+            xml += `<Row><Cell><Data ss:Type="Number">${i+1}</Data></Cell><Cell><Data ss:Type="String">${h.s1}${h.s2}</Data></Cell><Cell><Data ss:Type="Number">${h.snr}</Data></Cell><Cell><Data ss:Type="String">${h.val===2?'100%':(h.val===0?'0%':'50%')}</Data></Cell></Row>`;
         });
         xml += `</Table></Worksheet></Workbook>`;
         const blob = new Blob([xml], { type: "application/vnd.ms-excel" });
-        const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `Εξέταση_${name}.xls`; a.click();
-    }
-
-    function smartPrint() {
-        const frame = document.getElementById('printFrame');
-        const content = document.getElementById('printArea').innerHTML;
-        const canvas = document.getElementById('fCanvas');
-        const imgData = canvas.toDataURL("image/png");
-        const doc = frame.contentWindow.document;
-        doc.open();
-        doc.write(`<html><head><style>body{font-family:sans-serif;padding:20px;} .srt-box{background:#34c759;color:white;padding:20px;text-align:center;font-size:3em;border-radius:15px;} table{width:100%;border-collapse:collapse;} th,td{border:1px solid #ddd;padding:8px;text-align:center;} th{background:#007aff;color:white;} .strike-err{text-decoration:line-through;color:red;} img{width:100%;}</style></head><body>${content}<script>document.querySelector('canvas').outerHTML='<img src="${imgData}">'; window.onload=function(){window.print();};<\/script></body></html>`);
-        doc.close();
+        const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `Results_${name}.xls`; a.click();
     }
 </script>
 </body>
