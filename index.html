@@ -2,13 +2,17 @@
 <html lang="el">
 <head>
     <meta charset="UTF-8">
-    <title>Ομιλητική Ακουομετρία - V51</title>
+    <title>Ομιλητική Ακουομετρία - V52</title>
     <style>
         :root { --primary: #007aff; --success: #34c759; --danger: #ff3b30; --warning: #ff9500; --bg: #f2f2f7; --card: #ffffff; }
         * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
         body { font-family: -apple-system, system-ui, sans-serif; padding: 20px; background: var(--bg); color: #1c1c1e; margin: 0; }
         .container { max-width: 850px; margin: 20px auto; background: var(--card); padding: 40px; border-radius: 30px; box-shadow: 0 20px 40px rgba(0,0,0,0.05); }
         
+        /* App Icon Style */
+        .app-logo { text-align: center; margin-bottom: 20px; }
+        .icon-circle { width: 80px; height: 80px; background: var(--primary); border-radius: 20px; display: inline-flex; align-items: center; justify-content: center; color: white; font-size: 40px; box-shadow: 0 10px 20px rgba(0,122,255,0.3); }
+
         .cal-box { background: #1c1c1e !important; color: white; padding: 15px; border-radius: 15px; margin-bottom: 25px; display: flex; align-items: center; justify-content: space-between; border: 2px solid var(--primary); }
         .cal-btn { background: var(--danger); color: white; border: none; padding: 12px 20px; border-radius: 10px; font-weight: bold; cursor: pointer; }
         
@@ -23,7 +27,8 @@
         .custom-file-upload { display: flex; align-items: center; justify-content: center; height: 50px; border: 2px dashed var(--primary); border-radius: 12px; cursor: pointer; font-weight: bold; margin-bottom: 10px; color: var(--primary); background: #fff; }
         .file-selected { border: 3px solid var(--success) !important; background: #f2faf4 !important; color: #1a7d32 !important; }
         
-        .play-btn { background: var(--primary) !important; color: white !important; width: 100%; padding: 22px; border: none; border-radius: 20px; font-size: 20px; font-weight: 900; cursor: pointer; margin-bottom: 10px; box-shadow: inset 0 0 0 1000px var(--primary); }
+        .play-btn { background: var(--primary) !important; color: white !important; width: 100%; padding: 22px; border: none; border-radius: 20px; font-size: 20px; font-weight: 900; cursor: pointer; margin-bottom: 10px; box-shadow: inset 0 0 0 1000px var(--primary); transition: 0.2s; }
+        .play-btn:active { transform: scale(0.98); }
 
         .graph-wrapper { background: #fff; border: 1px solid #eee; border-radius: 15px; padding: 20px; margin: 15px 0; position: relative; }
         canvas { width: 100%; height: 280px; }
@@ -36,15 +41,8 @@
 
         .pdf-card { border: 8px solid var(--primary) !important; padding: 30px; border-radius: 30px; background: white !important; }
         .srt-box { 
-            background-color: var(--success) !important; 
-            color: white !important; 
-            padding: 25px; 
-            border-radius: 20px; 
-            text-align: center; 
-            font-size: 3.5em; 
-            font-weight: 900; 
-            margin: 20px 0;
-            box-shadow: inset 0 0 0 1000px var(--success) !important;
+            background-color: var(--success) !important; color: white !important; padding: 25px; border-radius: 20px; text-align: center; 
+            font-size: 3.5em; font-weight: 900; margin: 20px 0; box-shadow: inset 0 0 0 1000px var(--success) !important;
         }
         
         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
@@ -68,7 +66,10 @@
 
 <div class="container">
     <div id="setup">
-        <h2 style="text-align:center; color:var(--primary)">Ομιλητική Ακουομετρία</h2>
+        <div class="app-logo">
+            <div class="icon-circle">🎧</div>
+            <h2 style="color:var(--primary); margin-top:10px;">Ομιλητική Ακουομετρία</h2>
+        </div>
         
         <div class="cal-box no-print">
             <label style="color:white; margin:0;">Calibration (1kHz)</label>
@@ -133,7 +134,7 @@
     </div>
 
     <div id="resUI" style="display:none;">
-        <div class="pdf-card">
+        <div class="pdf-card" id="printArea">
             <h1 style="color:var(--primary); border-bottom: 6px solid var(--primary); padding-bottom:10px; margin:0 0 20px 0;">Αναφορά Εξέτασης</h1>
             <div id="resMeta" style="font-size: 1.2em; line-height: 1.6; margin-bottom:20px;"></div>
             <div class="srt-box" id="srtFinal">0 dB</div>
@@ -141,8 +142,8 @@
             <table id="resTable"><thead><tr><th>#</th><th>Λέξη</th><th>SNR</th><th>Σκορ</th></tr></thead><tbody></tbody></table>
         </div>
         <div class="no-print" style="margin-top:20px; display:grid; gap:12px;">
-            <button class="play-btn" onclick="window.print()">ΕΚΤΥΠΩΣΗ ΑΝΑΦΟΡΑΣ</button>
-            <button class="play-btn" style="background:var(--success) !important;" onclick="exportToExcel()">ΕΞΑΓΩΓΗ ΣΕ EXCEL (.csv)</button>
+            <button class="play-btn" onclick="smartPrint()">ΕΚΤΥΠΩΣΗ ΑΝΑΦΟΡΑΣ (Tablet OK)</button>
+            <button class="play-btn" style="background:var(--success) !important;" onclick="exportToExcel()">ΕΞΑΓΩΓΗ ΣΕ EXCEL (FIXED)</button>
             <button class="play-btn" style="background:var(--warning) !important;" onclick="saveAndNext()">ΑΠΟΘΗΚΕΥΣΗ & ΑΛΛΟ ΑΥΤΙ</button>
             <button class="play-btn" style="background:#8e8e93 !important;" onclick="location.reload()">ΝΕΑ ΕΞΕΤΑΣΗ / ΑΡΧΙΚΗ</button>
         </div>
@@ -160,7 +161,7 @@
     }
 
     function toggleCalibration() {
-        if(!audioCtx) audioCtx = new AudioContext();
+        if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         const b = document.getElementById('calBtn');
         if(calNode) { calNode.stop(); calNode = null; b.innerText="Start Tone"; }
         else {
@@ -176,7 +177,7 @@
     }
 
     async function hSelect(type) {
-        if(!audioCtx) audioCtx = new AudioContext();
+        if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         const input = document.getElementById(type==='list'?'lF':(type==='noise'?'nF':'wF'));
         if(type==='list') {
             (await input.files[0].text()).split('\n').forEach((line, i) => {
@@ -215,6 +216,7 @@
     }
 
     async function playAudio() {
+        if(audioCtx.state === 'suspended') await audioCtx.resume();
         if(document.getElementById('preToneUse').value === 'yes') {
             const o = audioCtx.createOscillator(), g = audioCtx.createGain(), p = audioCtx.createStereoPanner();
             p.pan.value = (curSide === 'R' ? 1 : -1);
@@ -268,10 +270,8 @@
         c.width=c.offsetWidth * 2; c.height=c.offsetHeight * 2;
         ctx.scale(2,2);
         const w = c.width/2, h = c.height/2;
-
         ctx.clearRect(0,0,w,h);
         
-        // Grid
         ctx.strokeStyle="#eee"; ctx.lineWidth=1;
         for(let i=-10; i<=30; i+=10) {
             let y = h - 40 - ((i+10)*(h-60)/40);
@@ -282,9 +282,7 @@
         const data = history.map(h => h.snr).concat(currentSNR);
         if(data.length > 0) {
             const color = curSide==='L'?'#007aff':'#ff3b30';
-            
-            // Line
-            ctx.beginPath(); ctx.strokeStyle = color; ctx.lineWidth = 4; ctx.lineJoin = "round";
+            ctx.beginPath(); ctx.strokeStyle = color; ctx.lineWidth = 4;
             data.forEach((v,i) => {
                 let x = 40 + (i * (w-80)/(data.length-1 || 1));
                 let y = h - 40 - ((v+10)*(h-60)/40);
@@ -292,23 +290,16 @@
             });
             ctx.stroke();
 
-            // Points
             data.forEach((v,i) => {
                 let x = 40 + (i * (w-80)/(data.length-1 || 1));
                 let y = h - 40 - ((v+10)*(h-60)/40);
-                
-                // Αν είναι αναστροφή, σχεδίασε X, αλλιώς κύκλο
                 const histEntry = history[i];
                 if(histEntry && histEntry.isRev) {
                     ctx.strokeStyle = color; ctx.lineWidth = 4;
-                    ctx.beginPath();
-                    ctx.moveTo(x-6, y-6); ctx.lineTo(x+6, y+6);
-                    ctx.moveTo(x+6, y-6); ctx.lineTo(x-6, y+6);
-                    ctx.stroke();
+                    ctx.beginPath(); ctx.moveTo(x-6, y-6); ctx.lineTo(x+6, y+6);
+                    ctx.moveTo(x+6, y-6); ctx.lineTo(x-6, y+6); ctx.stroke();
                 } else {
-                    ctx.fillStyle = color;
-                    ctx.beginPath(); ctx.arc(x,y,6,0,Math.PI*2); ctx.fill();
-                    ctx.strokeStyle = "white"; ctx.lineWidth = 2; ctx.stroke();
+                    ctx.fillStyle = color; ctx.beginPath(); ctx.arc(x,y,6,0,7); ctx.fill();
                 }
             });
         }
@@ -337,23 +328,23 @@
         document.getElementById('resUI').style.display='block';
         document.getElementById('resMeta').innerHTML = `Ασθενής: <b>${data.name}</b> | Ηλικία: <b>${data.age}</b> | Αυτί: <b>${data.ear}</b><br>Ημερομηνία: <b>${data.date}</b>`;
         document.getElementById('srtFinal').innerText = data.srt + " dB";
-        
-        setTimeout(() => drawGraph('fCanvas', data.history, data.finalSNR), 100);
-        
+        setTimeout(() => drawGraph('fCanvas', data.history, data.finalSNR), 200);
         const tb=document.querySelector('#resTable tbody'); tb.innerHTML="";
         data.history.forEach((h,i)=>{
             const s1c = (h.val===0||h.type==='b')?'strike-err':'';
             const s2c = (h.val===0||h.type==='a')?'strike-err':'';
-            tb.insertRow().innerHTML=`<td>${i+1}</td><td><span class="${s1c}">${h.s1}</span><span class="${s2c}">${h.s2}</span>${h.isRev?' <b>(R)</b>':''}</td><td>${h.snr}</td><td>${h.val===2?'100%':(h.val===0?'0%':'50%')}</td>`;
+            tb.insertRow().innerHTML=`<td>${i+1}</td><td><span class="${s1c}">${h.s1}</span><span class="${s2c}">${h.s2}</span>${h.isRev?' (R)':''}</td><td>${h.snr}</td><td>${h.val===2?'100%':(h.val===0?'0%':'50%')}</td>`;
         });
     }
 
+    // FIXED EXCEL EXPORT FOR GREEK SYSTEMS
     function exportToExcel() {
         const bom = "\uFEFF";
-        let csv = "A/A;Λέξη;Συλλαβή 1;Κατάσταση 1;Συλλαβή 2;Κατάσταση 2;SNR;Σκορ;Αναστροφή\n";
+        let csv = "sep=;\n"; // Force Excel to recognize semicolon
+        csv += "A/A;Λέξη;Συλλαβή 1;Κατάσταση 1;Συλλαβή 2;Κατάσταση 2;SNR;Σκορ;Αναστροφή\n";
         state.hist.forEach((h,i) => {
-            const err1 = (h.val===0||h.type==='b') ? "(ΛΑΘΟΣ)" : "OK";
-            const err2 = (h.val===0||h.type==='a') ? "(ΛΑΘΟΣ)" : "OK";
+            const err1 = (h.val===0||h.type==='b') ? "ΛΑΘΟΣ" : "OK";
+            const err2 = (h.val===0||h.type==='a') ? "ΛΑΘΟΣ" : "OK";
             csv += `${i+1};${h.s1}${h.s2};${h.s1};${err1};${h.s2};${err2};${h.snr};${h.val===2?'100%':(h.val===0?'0%':'50%')};${h.isRev?'NAI':''}\n`;
         });
         const blob = new Blob([bom + csv], { type: 'text/csv;charset=utf-8;' });
@@ -361,6 +352,36 @@
         link.href = URL.createObjectURL(blob);
         link.download = `Result_${document.getElementById('pName').value}_${curSide}.csv`;
         link.click();
+    }
+
+    // TABLET FRIENDLY PRINTING
+    function smartPrint() {
+        const content = document.getElementById('printArea').innerHTML;
+        const canvas = document.getElementById('fCanvas');
+        const imgData = canvas.toDataURL("image/png");
+        
+        const printWin = window.open('', '_blank');
+        printWin.document.write(`
+            <html><head><title>Εκτύπωση Αναφοράς</title>
+            <style>
+                body { font-family: sans-serif; padding: 20px; }
+                .pdf-card { border: 2px solid #007aff; padding: 20px; border-radius: 20px; }
+                .srt-box { background: #34c759; color: white; padding: 20px; text-align: center; font-size: 3em; border-radius: 15px; margin: 20px 0; }
+                table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+                th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+                th { background: #007aff; color: white; }
+                .strike-err { text-decoration: line-through; color: red; }
+                img { width: 100%; height: auto; border: 1px solid #eee; margin-top: 20px; }
+            </style></head><body>
+            <div class="pdf-card">${content}</div>
+            <script>
+                // Αντικατάσταση του live canvas με στατική εικόνα για την εκτύπωση
+                const canvasWrapper = document.querySelector('.graph-wrapper');
+                canvasWrapper.innerHTML = '<img src="${imgData}">';
+                setTimeout(() => { window.print(); }, 500);
+            <\/script></body></html>
+        `);
+        printWin.document.close();
     }
 
     function saveAndNext() {
