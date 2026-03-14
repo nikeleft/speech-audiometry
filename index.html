@@ -13,6 +13,22 @@
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
             background: white; display: flex; flex-direction: column; 
             justify-content: center; align-items: center; z-index: 9999; text-align: center;
+            padding: 20px; box-sizing: border-box;
+        }
+
+        /* Διόρθωση για να μη σπάει ο τίτλος */
+        .splash-title {
+            color: var(--primary);
+            margin-bottom: 5px;
+            white-space: nowrap;
+            font-size: clamp(18px, 4.5vw, 32px); /* Προσαρμόζεται αυτόματα στο πλάτος */
+        }
+
+        .splash-subtitle {
+            color: #555;
+            margin-top: 0;
+            white-space: nowrap;
+            font-size: clamp(16px, 4vw, 28px);
         }
 
         .container { max-width: 850px; margin: 0 auto; background: var(--card); padding: 25px; border-radius: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
@@ -37,7 +53,6 @@
         canvas { width: 100%; height: 280px; background: #fff; border-radius: 15px; border: 1px solid #ddd; margin-top: 10px; }
         .srt-box { background: var(--success); color: white; padding: 20px; border-radius: 18px; text-align: center; font-size: 3.5em; font-weight: 900; margin: 15px 0; }
         
-        /* Grid for Separate Ear Loading */
         .load-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
         .load-col { background: #f9f9fb; padding: 10px; border-radius: 15px; border: 1px solid #eee; }
         .load-col.L { border-left: 5px solid var(--primary); }
@@ -59,8 +74,8 @@
 <body onload="initApp()">
 
 <div id="splash">
-    <h1 style="color:var(--primary); margin-bottom:5px;">Προσαρμοστική Ομιλητική Ακουομετρία σε Θόρυβο</h1>
-    <h1 style="color:#555; margin-top:0;">Adaptive Speech in Noise Audiometry</h1>
+    <h1 class="splash-title">Προσαρμοστική Ομιλητική Ακουομετρία σε Θόρυβο</h1>
+    <h1 class="splash-subtitle">Adaptive Speech in Noise Audiometry</h1>
     <p style="margin-top:40px; font-size:0.9em; color:#000;">&copy; 2026 Copyright</p>
     <p style="font-weight:bold; font-size:1.4em; color:#000; margin-top:5px;">Δρ. Νίκος Ελευθεριάδης ΩΡΛ</p>
 </div>
@@ -109,10 +124,8 @@
                     <label style="color:var(--primary)">ΑΡΙΣΤΕΡΟ (L)</label>
                     <label for="lFL" class="custom-file-upload" id="llL">📂 ΛΙΣΤΑ L</label>
                     <input type="file" id="lFL" style="display:none" onchange="hSelect('list', 'L')">
-                    
                     <label for="nFL" class="custom-file-upload" id="lnL">🔊 ΘΟΡΥΒΟΣ L</label>
                     <input type="file" id="nFL" style="display:none" onchange="hSelect('noise', 'L')">
-                    
                     <label for="wFL" class="custom-file-upload" id="lwL">🎵 ΛΕΞΕΙΣ L</label>
                     <input type="file" id="wFL" style="display:none" multiple onchange="hSelect('words', 'L')">
                 </div>
@@ -120,10 +133,8 @@
                     <label style="color:var(--danger)">ΔΕΞΙ (R)</label>
                     <label for="lFR" class="custom-file-upload" id="llR">📂 ΛΙΣΤΑ R</label>
                     <input type="file" id="lFR" style="display:none" onchange="hSelect('list', 'R')">
-                    
                     <label for="nFR" class="custom-file-upload" id="lnR">🔊 ΘΟΡΥΒΟΣ R</label>
                     <input type="file" id="nFR" style="display:none" onchange="hSelect('noise', 'R')">
-                    
                     <label for="wFR" class="custom-file-upload" id="lwR">🎵 ΛΕΞΕΙΣ R</label>
                     <input type="file" id="wFR" style="display:none" multiple onchange="hSelect('words', 'R')">
                 </div>
@@ -169,6 +180,7 @@
 </div>
 
 <script>
+    /* ΟΛΕΣ ΟΙ ΛΕΙΤΟΥΡΓΙΕΣ JAVASCRIPT ΠΑΡΑΜΕΝΟΥΝ ΑΘΙΚΤΕΣ */
     let audioCtx, calOsc, curSide = 'L', gData = { L: {list:{}, noise:null, words:{}}, R: {list:{}, noise:null, words:{}} };
     let state = { hist: [], revs: [], idx: 0, snr: 7, step: 2, lastD: null, activeWords: [], startTime: null, duration: "" };
     let sessionResults = { L: null, R: null };
@@ -221,9 +233,7 @@
         const input = document.getElementById(inputId);
         if(!input.files.length) return;
         if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        
         const target = gData[side];
-
         if(type==='list') {
             const txt = await input.files[0].text();
             target.list = {};
@@ -304,23 +314,14 @@
         if(isRev) state.revs.push(state.snr);
         if(state.revs.length>=2) state.step=1;
         state.lastD=val===2?'down':'up'; state.snr += (val===2?-state.step:state.step);
-        
         wordPlayed = false;
         toggleScoring(false);
-
         if(state.revs.length>=6 || state.idx >= state.activeWords.length - 1) {
             const avg = state.revs.length > 0 ? (state.revs.reduce((a,b)=>a+b,0)/state.revs.length).toFixed(1) : state.snr;
             const diff = Date.now() - state.startTime;
             const m = Math.floor(diff/60000); const s = Math.floor((diff%60000)/1000);
             state.duration = `${m}m ${s}s`;
-            
-            sessionResults[curSide] = { 
-                srt: avg, 
-                hist: [...state.hist], 
-                duration: state.duration,
-                sideName: curSide==='L'?'Αριστερό':'Δεξί'
-            };
-
+            sessionResults[curSide] = { srt: avg, hist: [...state.hist], duration: state.duration, sideName: curSide==='L'?'Αριστερό':'Δεξί' };
             saveToHistory(avg); finish(avg);
         } else { state.idx++; updateUI(); }
     }
