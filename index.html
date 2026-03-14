@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Ομιλητική Ακουομετρία - V85.1</title>
+    <title>Ομιλητική Ακουομετρία - V88 (Final)</title>
     <style>
         :root { --primary: #007aff; --success: #34c759; --danger: #ff3b30; --warning: #ff9500; --bg: #f2f2f7; --card: #ffffff; }
         body { font-family: -apple-system, system-ui, sans-serif; padding: 15px; background: var(--bg); color: #1c1c1e; margin: 0; }
@@ -58,7 +58,13 @@
         <div style="background:#f9f9fb; padding:15px; border-radius:15px; border:1px solid #ddd; margin-bottom:15px;">
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
                 <div><label>Αρχικό SNR (dB)</label><input type="number" id="startSNR" value="10"></div>
-                <div><label>Τόνος Προσοχής</label><select id="preToneUse"><option value="yes">Ναι</option><option value="no">Όχι</option></select></div>
+                <div><label>Σήμα Προσοχής</label>
+                    <select id="preToneUse">
+                        <option value="tone">Τόνος (1000Hz)</option>
+                        <option value="noise">Θόρυβος (Noise)</option>
+                        <option value="no">Όχι</option>
+                    </select>
+                </div>
             </div>
             <div id="rangeL" class="range-box active">
                 <div><label>L: Από #</label><input type="number" id="wordFromL" value="1"></div>
@@ -116,13 +122,16 @@
 
     function getAudioChain() {
         if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        const compressor = audioCtx.createDynamicsCompressor();
-        compressor.threshold.setValueAtTime(-1, audioCtx.currentTime);
-        compressor.ratio.setValueAtTime(12, audioCtx.currentTime);
+        const limiter = audioCtx.createDynamicsCompressor();
+        limiter.threshold.setValueAtTime(-0.5, audioCtx.currentTime); 
+        limiter.knee.setValueAtTime(0, audioCtx.currentTime); 
+        limiter.ratio.setValueAtTime(20, audioCtx.currentTime); 
+        limiter.attack.setValueAtTime(0.001, audioCtx.currentTime);
+        limiter.release.setValueAtTime(0.1, audioCtx.currentTime);
         const masterGain = audioCtx.createGain();
         masterGain.gain.setValueAtTime(0.9, audioCtx.currentTime);
-        compressor.connect(masterGain); masterGain.connect(audioCtx.destination);
-        return compressor;
+        limiter.connect(masterGain); masterGain.connect(audioCtx.destination);
+        return limiter;
     }
 
     function toggleCalibration() {
@@ -178,22 +187,49 @@
 
     async function playAudio() {
         const chain = getAudioChain(); if(audioCtx.state === 'suspended') await audioCtx.resume();
-        const useTone = document.getElementById('preToneUse').value === 'yes';
-        const wordBuffer = state.activeWords[state.idx].buffer;
-        const totalLen = wordBuffer.length + (useTone ? 44100 : 22050);
+        const attentionMode = document.getElementById('preToneUse').value;
+        const wordBuf = state.activeWords[state.idx].buffer;
+        const preNoiseLen = Math.floor(audioCtx.sampleRate * 0.2); 
+        const totalLen = preNoiseLen + wordBuf.length + Math.floor(audioCtx.sampleRate * 0.1); 
         const out = audioCtx.createBuffer(2, totalLen, audioCtx.sampleRate);
-        const chan = curSide==='L'?0:1;
-        const sD = wordBuffer.getChannelData(0); const oD = out.getChannelData(chan);
-        const nD = gData.noise.getChannelData(chan % gData.noise.numberOfChannels);
-        let offset = useTone ? 33075 : 11025;
-        if(useTone) for(let i=0; i<4410; i++) oD[i+5000] = Math.sin(2*Math.PI*2000*i/audioCtx.sampleRate) * 0.3;
-        let pS = 0, pN = 0;
-        for(let i=0; i<wordBuffer.length; i++) pS += sD[i]**2;
-        for(let i=0; i<out.length; i++) pN += nD[i % gData.noise.length]**2;
-        let k = Math.sqrt(pS/wordBuffer.length) / (Math.sqrt(pN/out.length) * Math.pow(10, state.snr/20));
-        for(let i=0; i<out.length; i++) oD[i] += k * nD[i % gData.noise.length];
-        for(let i=0; i<wordBuffer.length; i++) oD[i + offset] += sD[i];
-        const s = audioCtx.createBufferSource(); s.buffer=out; s.connect(chain); s.start();
+        const chan = curSide === 'L' ? 0 : 1;
+        const oD = out.getChannelData(chan);
+        const sD = wordBuf.getChannelData(0);
+        const nD = gData.noise.getChannelData(0);
+
+        let pS = 0; for(let i=0; i<wordBuf.length; i++) pS += sD[i]**2;
+        let rmsS = Math.sqrt(pS / wordBuf.length);
+
+        // Fixed index logic for noise (Safety against small files)
+        let startIdx = Math.floor(Math.random() * gData.noise.length);
+        let pN = 0;
+        for(let i=0; i<wordBuf.length; i++) {
+            pN += nD[(startIdx + preNoiseLen + i) % gData.noise.length]**2;
+        }
+        let rmsN = Math.sqrt(pN / wordBuf.length);
+        let k = rmsS / (rmsN * Math.pow(10, state.snr/20));
+
+        const fadeInLen = Math.floor(audioCtx.sampleRate * 0.05);
+        for(let i=0; i<totalLen; i++) {
+            let noiseVal = nD[(startIdx + i) % gData.noise.length] * k;
+            if(i < fadeInLen) noiseVal *= (i / fadeInLen); 
+            if(attentionMode === 'no' && i < preNoiseLen) noiseVal = 0;
+            oD[i] = noiseVal;
+        }
+
+        if(attentionMode === 'tone') {
+            const toneLen = Math.floor(audioCtx.sampleRate * 0.1);
+            const toneStart = Math.floor(audioCtx.sampleRate * 0.05);
+            for(let i=0; i<toneLen; i++) {
+                oD[toneStart + i] += Math.sin(2 * Math.PI * 1000 * i / audioCtx.sampleRate) * 0.2;
+            }
+        }
+
+        for(let i=0; i<wordBuf.length; i++) {
+            oD[preNoiseLen + i] += sD[i];
+        }
+
+        const s = audioCtx.createBufferSource(); s.buffer = out; s.connect(chain); s.start();
     }
 
     function handleScore(val, type='') {
@@ -211,8 +247,7 @@
 
     function updateUI() {
         document.getElementById('snrDisp').innerText = state.snr + " dB";
-        // ΑΛΛΑΓΗ: Αφαίρεση της τελείας από την εμφάνιση της λέξης
-        document.getElementById('wDisp').innerText = state.activeWords[state.idx].s1 + state.activeWords[state.idx].s2;
+        document.getElementById('wDisp').innerText = state.activeWords[state.idx].s1 + state.activeWords[state.idx].s2 + ".";
         drawGraph('cCanvas', state.hist, state.snr);
     }
 
@@ -228,10 +263,7 @@
         }
         const data = history.concat(currentSNR !== null ? {snr: currentSNR, val: null} : []);
         if(data.length > 1){
-            ctx.beginPath(); 
-            ctx.strokeStyle="#000"; 
-            ctx.setLineDash([10, 5]); 
-            ctx.lineWidth=4;
+            ctx.beginPath(); ctx.strokeStyle="#000"; ctx.setLineDash([10, 5]); ctx.lineWidth=4;
             data.forEach((d, i) => {
                 let x = 40 + (i * (w-60) / (data.length-1));
                 let y = h-40-((d.snr+10)*(h-60)/40);
@@ -261,77 +293,63 @@
     }
 
     function saveToHistory(srt) {
-        let history = JSON.parse(localStorage.getItem('audit_v85') || '[]');
-        history.push({ 
-            id: Date.now(), 
-            name: document.getElementById('pName').value, 
-            side: curSide, 
-            srt: srt, 
-            date: new Date().toLocaleString('el-GR'), 
-            raw: [...state.hist] 
-        });
-        localStorage.setItem('audit_v85', JSON.stringify(history.slice(-15))); 
-        loadHistory();
+        let history = JSON.parse(localStorage.getItem('audit_v88_final') || '[]');
+        history.push({ id: Date.now(), name: document.getElementById('pName').value, side: curSide, srt: srt, date: new Date().toLocaleString('el-GR'), raw: [...state.hist] });
+        localStorage.setItem('audit_v88_final', JSON.stringify(history.slice(-15))); loadHistory();
     }
 
     function deleteFromHistory(e, id) {
-        e.stopPropagation();
-        if(!confirm("Σίγουρη διαγραφή αυτής της εξέτασης;")) return;
-        let history = JSON.parse(localStorage.getItem('audit_v85') || '[]');
-        history = history.filter(item => item.id !== id);
-        localStorage.setItem('audit_v85', JSON.stringify(history));
-        loadHistory();
+        e.stopPropagation(); if(!confirm("Σίγουρη διαγραφή;")) return;
+        let history = JSON.parse(localStorage.getItem('audit_v88_final') || '[]');
+        localStorage.setItem('audit_v88_final', JSON.stringify(history.filter(item => item.id !== id))); loadHistory();
     }
 
     function loadHistory() {
-        const history = JSON.parse(localStorage.getItem('audit_v85') || '[]');
+        const history = JSON.parse(localStorage.getItem('audit_v88_final') || '[]');
         const list = document.getElementById('historyList');
         list.innerHTML = history.length ? '<label>Ιστορικό Εξετάσεων</label>' : '';
         history.reverse().forEach((item, idx) => {
             const realIdx = history.length - 1 - idx;
             const itemDiv = document.createElement('div');
             itemDiv.className = 'history-item';
-            itemDiv.innerHTML = `
-                <div class="history-link" onclick="viewHistory(${realIdx})">
-                    <b>${item.name}</b><br><small>${item.date} | ${item.side==='L'?'Αρ':'Δε'} | ${item.srt}dB</small>
-                </div>
-                <button class="del-btn" onclick="deleteFromHistory(event, ${item.id})">🗑️</button>
-            `;
+            itemDiv.innerHTML = `<div class="history-link" onclick="viewHistory(${realIdx})"><b>${item.name}</b><br><small>${item.date} | ${item.side==='L'?'Αρ':'Δε'} | ${item.srt}dB</small></div><button class="del-btn" onclick="deleteFromHistory(event, ${item.id})">🗑️</button>`;
             list.appendChild(itemDiv);
         });
     }
 
     function viewHistory(idx) {
-        const history = JSON.parse(localStorage.getItem('audit_v85') || '[]');
+        const history = JSON.parse(localStorage.getItem('audit_v88_final') || '[]');
         const item = history[idx]; document.getElementById('pName').value = item.name;
         curSide = item.side; state.hist = item.raw; document.getElementById('setup').style.display='none'; finish(item.srt);
     }
 
+    function getFileName(ext) {
+        const name = (document.getElementById('pName').value || "Ανώνυμος").replace(/\s+/g, '_');
+        const date = new Date().toLocaleDateString('el-GR').replace(/\//g, '-');
+        return `${name}_${date}.${ext}`;
+    }
+
     function exportToDoc() {
-        const name = document.getElementById('pName').value || "Patient";
         let rows = "";
         state.hist.forEach((h, i) => {
             const s1S = (h.val===0||h.type==='b') ? 'color:red;font-weight:bold;' : '';
             const s2S = (h.val===0||h.type==='a') ? 'color:red;font-weight:bold;' : '';
             rows += `<tr><td>${i+1}</td><td><span style="${s1S}">${h.s1}</span><span style="${s2S}">${h.s2}</span></td><td>${h.snr}</td><td>${h.val===2?'100%':(h.val===0?'0%':'50%')}</td></tr>`;
         });
-        const html = `<html><head><meta charset="utf-8"></head><body style="font-family:Arial;"><h2>Αναφορά: ${name}</h2><p>Αυτί: ${curSide} | SRT: ${document.getElementById('srtFinal').innerText}</p><table border="1" style="width:100%;border-collapse:collapse;text-align:center;"><tr><th>#</th><th>Λέξη</th><th>SNR</th><th>Σκορ</th></tr>${rows}</table></body></html>`;
-        const blob = new Blob([html], { type: 'application/msword' });
-        const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `Report_${name}.doc`; a.click();
+        const html = `<html><head><meta charset="utf-8"></head><body style="font-family:Arial;"><h2>Αναφορά: ${document.getElementById('pName').value}</h2><p>Αυτί: ${curSide} | SRT: ${document.getElementById('srtFinal').innerText}</p><table border="1" style="width:100%;border-collapse:collapse;text-align:center;"><tr><th>#</th><th>Λέξη</th><th>SNR</th><th>Σκορ</th></tr>${rows}</table></body></html>`;
+        const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([html], { type: 'application/msword' })); a.download = getFileName('doc'); a.click();
     }
 
     function exportToExcel() {
-        const name = document.getElementById('pName').value || "Patient";
-        let xml = `<?xml version="1.0"?><Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"><Worksheet ss:Name="Results"><Table>`;
-        xml += `<Row><Cell><Data ss:Type="String">A/A</Data></Cell><Cell><Data ss:Type="String">Λέξη</Data></Cell><Cell><Data ss:Type="String">Συλλαβή 1</Data></Cell><Cell><Data ss:Type="String">Συλλαβή 2</Data></Cell><Cell><Data ss:Type="String">SNR (dB)</Data></Cell><Cell><Data ss:Type="String">Σκορ</Data></Cell></Row>`;
+        let xml = `<?xml version="1.0"?><Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">
+        <Styles><Style ss:ID="sCenter"><Alignment ss:Horizontal="Center" ss:Vertical="Center"/></Style></Styles>
+        <Worksheet ss:Name="Results"><Table ss:DefaultColumnWidth="100">`;
+        xml += `<Row ss:StyleID="sCenter"><Cell><Data ss:Type="String">A/A</Data></Cell><Cell><Data ss:Type="String">Λέξη</Data></Cell><Cell><Data ss:Type="String">Συλλαβή 1</Data></Cell><Cell><Data ss:Type="String">Συλλαβή 2</Data></Cell><Cell><Data ss:Type="String">SNR (dB)</Data></Cell><Cell><Data ss:Type="String">Σκορ</Data></Cell></Row>`;
         state.hist.forEach((h, i) => {
-            const s1Stat = (h.val===0||h.type==='b') ? 'Λ' : 'Σ';
-            const s2Stat = (h.val===0||h.type==='a') ? 'Λ' : 'Σ';
-            xml += `<Row><Cell><Data ss:Type="Number">${i+1}</Data></Cell><Cell><Data ss:Type="String">${h.s1}${h.s2}</Data></Cell><Cell><Data ss:Type="String">${s1Stat}</Data></Cell><Cell><Data ss:Type="String">${s2Stat}</Data></Cell><Cell><Data ss:Type="Number">${h.snr}</Data></Cell><Cell><Data ss:Type="String">${h.val===2?'100%':(h.val===0?'0%':'50%')}</Data></Cell></Row>`;
+            xml += `<Row ss:StyleID="sCenter"><Cell><Data ss:Type="Number">${i+1}</Data></Cell><Cell><Data ss:Type="String">${h.s1}${h.s2}</Data></Cell><Cell><Data ss:Type="String">${(h.val===0||h.type==='b')?'Λ':'Σ'}</Data></Cell><Cell><Data ss:Type="String">${(h.val===0||h.type==='a')?'Λ':'Σ'}</Data></Cell><Cell><Data ss:Type="Number">${h.snr}</Data></Cell><Cell><Data ss:Type="String">${h.val===2?'100%':(h.val===0?'0%':'50%')}</Data></Cell></Row>`;
         });
         xml += `</Table></Worksheet></Workbook>`;
-        const blob = new Blob([xml], { type: "application/vnd.ms-excel" });
-        const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `Data_${name}.xls`; a.click();
+        const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([xml], { type: "application/vnd.ms-excel" })); a.download = getFileName('xls'); a.click();
     }
 
     function stopAndReturn() { document.getElementById('resUI').style.display='none'; document.getElementById('setup').style.display='block'; }
