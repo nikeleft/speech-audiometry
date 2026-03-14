@@ -7,6 +7,14 @@
     <style>
         :root { --primary: #007aff; --success: #34c759; --danger: #ff3b30; --warning: #ff9500; --bg: #f2f2f7; --card: #ffffff; }
         body { font-family: -apple-system, system-ui, sans-serif; padding: 15px; background: var(--bg); color: #1c1c1e; margin: 0; }
+        
+        /* Splash Screen Style */
+        #splash {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: white; display: flex; flex-direction: column; 
+            justify-content: center; align-items: center; z-index: 9999; text-align: center;
+        }
+
         .container { max-width: 850px; margin: 0 auto; background: var(--card); padding: 25px; border-radius: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
         .cal-box { background: #1c1c1e; color: white; padding: 15px; border-radius: 12px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; }
         .cal-btn { background: var(--danger); color: white; border: none; padding: 10px 15px; border-radius: 8px; font-weight: bold; cursor: pointer; }
@@ -19,12 +27,22 @@
         .ear-opt.active.R { background: var(--danger); color: white; }
         .range-box { display: none; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
         .range-box.active { display: grid; }
-        .custom-file-upload { display: flex; align-items: center; justify-content: center; height: 48px; border: 2px dashed var(--primary); border-radius: 12px; cursor: pointer; font-weight: bold; margin-bottom: 8px; color: var(--primary); }
+        
+        .custom-file-upload { display: flex; align-items: center; justify-content: center; height: 48px; border: 2px dashed var(--primary); border-radius: 12px; cursor: pointer; font-weight: bold; margin-bottom: 8px; color: var(--primary); font-size: 0.85em; }
         .file-selected { border: 2px solid var(--success) !important; background: #f2faf4 !important; color: #1a7d32 !important; }
+        
         .play-btn { background: var(--primary); color: white; width: 100%; padding: 22px; border: none; border-radius: 20px; font-size: 28px; font-weight: 900; cursor: pointer; margin-bottom: 15px; box-shadow: 0 8px 15px rgba(0,122,255,0.3); }
+        .play-btn:disabled { background: #ccc; box-shadow: none; cursor: not-allowed; }
         .secondary-btn { background: var(--warning); color: white; width: 100%; padding: 18px; border: none; border-radius: 15px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 5px; }
         canvas { width: 100%; height: 280px; background: #fff; border-radius: 15px; border: 1px solid #ddd; margin-top: 10px; }
         .srt-box { background: var(--success); color: white; padding: 20px; border-radius: 18px; text-align: center; font-size: 3.5em; font-weight: 900; margin: 15px 0; }
+        
+        /* Grid for Separate Ear Loading */
+        .load-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
+        .load-col { background: #f9f9fb; padding: 10px; border-radius: 15px; border: 1px solid #eee; }
+        .load-col.L { border-left: 5px solid var(--primary); }
+        .load-col.R { border-left: 5px solid var(--danger); }
+
         table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 14px; }
         th { background: var(--primary); color: white; padding: 12px; text-align: center; }
         td { padding: 10px; border-bottom: 1px solid #eee; text-align: center; font-weight: bold; }
@@ -34,13 +52,21 @@
         .del-btn { background: var(--danger); color: white; border: none; width: 35px; height: 35px; border-radius: 10px; cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center; margin-left: 10px; }
         .scoring-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
         .btn-score { border: none; border-radius: 15px; padding: 22px 0; font-weight: 900; font-size: 24px; color: #fff; cursor: pointer; }
+        .btn-score:disabled { opacity: 0.3; cursor: not-allowed; }
         .s0 { background: var(--danger); } .s1a { background: var(--warning); } .s1b { background: #ffcc00; color: #000; } .s2 { background: var(--success); }
     </style>
 </head>
-<body onload="loadHistory()">
+<body onload="initApp()">
+
+<div id="splash">
+    <h1 style="color:var(--primary); margin-bottom:5px;">Προσαρμοστική Ομιλητική Ακουομετρία σε Θόρυβο</h1>
+    <h1 style="color:#555; margin-top:0;">Adaptive Speech in Noise Audiometry</h1>
+    <p style="margin-top:40px; font-size:0.9em; color:#000;">&copy; 2026 Copyright</p>
+    <p style="font-weight:bold; font-size:1.4em; color:#000; margin-top:5px;">Δρ. Νίκος Ελευθεριάδης ΩΡΛ</p>
+</div>
 
 <div class="container">
-    <div id="setup">
+    <div id="setup" style="display:none;">
         <h2 style="text-align:center;">🎧 Ομιλητική Ακουομετρία</h2>
         <div class="cal-box">
             <div>CALIBRATION (1kHz) <span id="calEar" class="ear-tag">LEFT</span></div>
@@ -50,14 +76,16 @@
             <div><label>Ονοματεπώνυμο</label><input type="text" id="pName" placeholder="Όνομα Ασθενούς"></div>
             <div><label>Ηλικία</label><input type="number" id="pAge"></div>
         </div>
-        <label>ΠΛΕΥΡΑ ΕΞΕΤΑΣΗΣ</label>
+
+        <label>ΠΛΕΥΡΑ ΕΞΕΤΑΣΗΣ (LIVE)</label>
         <div class="ear-selector-box">
             <div id="optL" class="ear-opt L active" onclick="switchSide('L')">ΑΡΙΣΤΕΡΟ</div>
             <div id="optR" class="ear-opt R" onclick="switchSide('R')">ΔΕΞΙ</div>
         </div>
+
         <div style="background:#f9f9fb; padding:15px; border-radius:15px; border:1px solid #ddd; margin-bottom:15px;">
-            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
-                <div><label>Αρχικό SNR (dB)</label><input type="number" id="startSNR" value="10"></div>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:15px;">
+                <div><label>Αρχικό SNR (dB)</label><input type="number" id="startSNR" value="7"></div>
                 <div><label>Σήμα Προσοχής</label>
                     <select id="preToneUse">
                         <option value="tone">Τόνος (1000Hz)</option>
@@ -66,18 +94,42 @@
                     </select>
                 </div>
             </div>
+
             <div id="rangeL" class="range-box active">
                 <div><label>L: Από #</label><input type="number" id="wordFromL" value="1"></div>
-                <div><label>L: Έως #</label><input type="number" id="wordToL" value="25"></div>
+                <div><label>L: Έως #</label><input type="number" id="wordToL" value="50"></div>
             </div>
             <div id="rangeR" class="range-box">
                 <div><label>R: Από #</label><input type="number" id="wordFromR" value="1"></div>
-                <div><label>R: Έως #</label><input type="number" id="wordToR" value="25"></div>
+                <div><label>R: Έως #</label><input type="number" id="wordToR" value="50"></div>
             </div>
-            <label for="lF" class="custom-file-upload" id="ll">📂 ΦΟΡΤΩΣΗ ΛΙΣΤΑΣ (.txt)</label><input type="file" id="lF" style="display:none" onchange="hSelect('list')">
-            <label for="nF" class="custom-file-upload" id="ln">🔊 ΦΟΡΤΩΣΗ ΘΟΡΥΒΟΥ</label><input type="file" id="nF" style="display:none" onchange="hSelect('noise')">
-            <label for="wF" class="custom-file-upload" id="lw">🎵 ΦΟΡΤΩΣΗ ΗΧΗΤΙΚΩΝ</label><input type="file" id="wF" style="display:none" multiple onchange="hSelect('words')">
+
+            <div class="load-grid">
+                <div class="load-col L">
+                    <label style="color:var(--primary)">ΑΡΙΣΤΕΡΟ (L)</label>
+                    <label for="lFL" class="custom-file-upload" id="llL">📂 ΛΙΣΤΑ L</label>
+                    <input type="file" id="lFL" style="display:none" onchange="hSelect('list', 'L')">
+                    
+                    <label for="nFL" class="custom-file-upload" id="lnL">🔊 ΘΟΡΥΒΟΣ L</label>
+                    <input type="file" id="nFL" style="display:none" onchange="hSelect('noise', 'L')">
+                    
+                    <label for="wFL" class="custom-file-upload" id="lwL">🎵 ΛΕΞΕΙΣ L</label>
+                    <input type="file" id="wFL" style="display:none" multiple onchange="hSelect('words', 'L')">
+                </div>
+                <div class="load-col R">
+                    <label style="color:var(--danger)">ΔΕΞΙ (R)</label>
+                    <label for="lFR" class="custom-file-upload" id="llR">📂 ΛΙΣΤΑ R</label>
+                    <input type="file" id="lFR" style="display:none" onchange="hSelect('list', 'R')">
+                    
+                    <label for="nFR" class="custom-file-upload" id="lnR">🔊 ΘΟΡΥΒΟΣ R</label>
+                    <input type="file" id="nFR" style="display:none" onchange="hSelect('noise', 'R')">
+                    
+                    <label for="wFR" class="custom-file-upload" id="lwR">🎵 ΛΕΞΕΙΣ R</label>
+                    <input type="file" id="wFR" style="display:none" multiple onchange="hSelect('words', 'R')">
+                </div>
+            </div>
         </div>
+
         <button class="play-btn" onclick="runTest()">ΕΝΑΡΞΗ ΕΞΕΤΑΣΗΣ</button>
         <div id="historyList"></div>
     </div>
@@ -89,12 +141,12 @@
         </div>
         <canvas id="cCanvas"></canvas>
         <div style="text-align:center; font-size:3.5em; font-weight:900; padding:20px; border:5px solid var(--primary); border-radius:25px; margin:20px 0; background:white;" id="wDisp">---</div>
-        <button class="play-btn" onclick="playAudio()">▶ ΠΑΙΞΕ</button>
+        <button class="play-btn" id="mainPlayBtn" onclick="playAudio()">▶ ΠΑΙΞΕ</button>
         <div class="scoring-grid">
-            <button class="btn-score s0" onclick="handleScore(0)">0</button>
-            <button class="btn-score s1a" onclick="handleScore(1,'a')">1α</button>
-            <button class="btn-score s1b" onclick="handleScore(1,'b')">1β</button>
-            <button class="btn-score s2" onclick="handleScore(2)">2</button>
+            <button class="btn-score s0 score-control" onclick="handleScore(0)" disabled>0</button>
+            <button class="btn-score s1a score-control" onclick="handleScore(1,'a')" disabled>1α</button>
+            <button class="btn-score s1b score-control" onclick="handleScore(1,'b')" disabled>1β</button>
+            <button class="btn-score s2 score-control" onclick="handleScore(2)" disabled>2</button>
         </div>
         <button onclick="location.reload()" style="width:100%; color:var(--danger); border:2px solid var(--danger); background:none; padding:15px; border-radius:15px; font-weight:bold; cursor:pointer; margin-top:20px;">🛑 ΔΙΑΚΟΠΗ ΕΞΕΤΑΣΗΣ</button>
     </div>
@@ -117,8 +169,18 @@
 </div>
 
 <script>
-    let audioCtx, calOsc, curSide = 'L', gData = { list: {}, noise: null, words: {} };
-    let state = { hist: [], revs: [], idx: 0, snr: 10, step: 2, lastD: null, activeWords: [] };
+    let audioCtx, calOsc, curSide = 'L', gData = { L: {list:{}, noise:null, words:{}}, R: {list:{}, noise:null, words:{}} };
+    let state = { hist: [], revs: [], idx: 0, snr: 7, step: 2, lastD: null, activeWords: [], startTime: null, duration: "" };
+    let sessionResults = { L: null, R: null };
+    let wordPlayed = false;
+
+    function initApp() {
+        setTimeout(() => {
+            document.getElementById('splash').style.display = 'none';
+            document.getElementById('setup').style.display = 'block';
+            loadHistory();
+        }, 5000);
+    }
 
     function getAudioChain() {
         if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -153,41 +215,55 @@
         document.getElementById('calEar').innerText = s === 'L' ? 'LEFT' : 'RIGHT';
     }
 
-    async function hSelect(type) {
-        const input = document.getElementById(type==='list'?'lF':(type==='noise'?'nF':'wF'));
+    async function hSelect(type, side) {
+        const inputId = type==='list'?`lF${side}`:(type==='noise'?`nF${side}`:`wF${side}`);
+        const labelId = type==='list'?`ll${side}`:(type==='noise'?`ln${side}`:`lw${side}`);
+        const input = document.getElementById(inputId);
         if(!input.files.length) return;
         if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        
+        const target = gData[side];
+
         if(type==='list') {
             const txt = await input.files[0].text();
+            target.list = {};
             txt.split('\n').forEach((line, i) => {
-                const parts = line.split(','); if(parts.length >= 3) gData.list[i+1] = {id:parts[0].trim(), s1:parts[1].trim(), s2:parts[2].trim()};
+                const parts = line.split(','); if(parts.length >= 3) target.list[i+1] = {id:parts[0].trim(), s1:parts[1].trim(), s2:parts[2].trim()};
             });
-            document.getElementById('ll').classList.add('file-selected');
+            document.getElementById(labelId).classList.add('file-selected');
         } else if(type==='noise') {
-            gData.noise = await audioCtx.decodeAudioData(await input.files[0].arrayBuffer());
-            document.getElementById('ln').classList.add('file-selected');
+            target.noise = await audioCtx.decodeAudioData(await input.files[0].arrayBuffer());
+            document.getElementById(labelId).classList.add('file-selected');
         } else {
-            for(let f of input.files) { const id = f.name.replace(/\.[^/.]+$/, "").trim(); gData.words[id] = await audioCtx.decodeAudioData(await f.arrayBuffer()); }
-            document.getElementById('lw').classList.add('file-selected');
+            for(let f of input.files) { const id = f.name.replace(/\.[^/.]+$/, "").trim(); target.words[id] = await audioCtx.decodeAudioData(await f.arrayBuffer()); }
+            document.getElementById(labelId).classList.add('file-selected');
         }
     }
 
     function runTest() {
+        const target = gData[curSide];
         let from = parseInt(document.getElementById(curSide==='L'?'wordFromL':'wordFromR').value) || 1;
         let to = parseInt(document.getElementById(curSide==='L'?'wordToL':'wordToR').value) || 100;
         let available = [];
-        for(let i=from; i<=to; i++) if(gData.list[i] && gData.words[gData.list[i].id]) available.push({...gData.list[i], buffer: gData.words[gData.list[i].id]});
-        if(!available.length || !gData.noise) return alert("Φορτώστε Λίστα, Θόρυβο και Ηχητικά.");
-        state = { hist: [], revs: [], idx: 0, snr: parseFloat(document.getElementById('startSNR').value), step: 2, lastD: null, activeWords: available.sort(() => Math.random() - 0.5) };
+        for(let i=from; i<=to; i++) if(target.list[i] && target.words[target.list[i].id]) available.push({...target.list[i], buffer: target.words[target.list[i].id]});
+        if(!available.length || !target.noise) return alert("Φορτώστε Λίστα, Θόρυβο και Ηχητικά για το επιλεγμένο αυτί.");
+        state = { hist: [], revs: [], idx: 0, snr: parseFloat(document.getElementById('startSNR').value), step: 2, lastD: null, activeWords: available.sort(() => Math.random() - 0.5), startTime: Date.now() };
         document.getElementById('setup').style.display='none'; document.getElementById('testUI').style.display='block';
         document.getElementById('earInd').innerText = curSide==='L'?"ΑΡΙΣΤΕΡΟ ΑΥΤΙ":"ΔΕΞΙ ΑΥΤΙ";
         document.getElementById('earInd').style.color = curSide==='L'?'var(--primary)':'var(--danger)';
+        wordPlayed = false;
+        toggleScoring(false);
         updateUI();
+    }
+
+    function toggleScoring(enable) {
+        document.querySelectorAll('.score-control').forEach(btn => btn.disabled = !enable);
     }
 
     async function playAudio() {
         const chain = getAudioChain(); if(audioCtx.state === 'suspended') await audioCtx.resume();
         const attentionMode = document.getElementById('preToneUse').value;
+        const target = gData[curSide];
         const wordBuf = state.activeWords[state.idx].buffer;
         const preNoiseLen = Math.floor(audioCtx.sampleRate * 0.2); 
         const totalLen = preNoiseLen + wordBuf.length + Math.floor(audioCtx.sampleRate * 0.1); 
@@ -195,59 +271,63 @@
         const chan = curSide === 'L' ? 0 : 1;
         const oD = out.getChannelData(chan);
         const sD = wordBuf.getChannelData(0);
-        const nD = gData.noise.getChannelData(0);
-
+        const nD = target.noise.getChannelData(0);
         let pS = 0; for(let i=0; i<wordBuf.length; i++) pS += sD[i]**2;
         let rmsS = Math.sqrt(pS / wordBuf.length);
-
-        // Fixed index logic for noise (Safety against small files)
-        let startIdx = Math.floor(Math.random() * gData.noise.length);
-        let pN = 0;
-        for(let i=0; i<wordBuf.length; i++) {
-            pN += nD[(startIdx + preNoiseLen + i) % gData.noise.length]**2;
-        }
+        let startIdx = Math.floor(Math.random() * target.noise.length);
+        let pN = 0; for(let i=0; i<wordBuf.length; i++) pN += nD[(startIdx + preNoiseLen + i) % target.noise.length]**2;
         let rmsN = Math.sqrt(pN / wordBuf.length);
         let k = rmsS / (rmsN * Math.pow(10, state.snr/20));
-
         const fadeInLen = Math.floor(audioCtx.sampleRate * 0.05);
         for(let i=0; i<totalLen; i++) {
-            let noiseVal = nD[(startIdx + i) % gData.noise.length] * k;
+            let noiseVal = nD[(startIdx + i) % target.noise.length] * k;
             if(i < fadeInLen) noiseVal *= (i / fadeInLen); 
             if(attentionMode === 'no' && i < preNoiseLen) noiseVal = 0;
             oD[i] = noiseVal;
         }
-
         if(attentionMode === 'tone') {
             const toneLen = Math.floor(audioCtx.sampleRate * 0.1);
             const toneStart = Math.floor(audioCtx.sampleRate * 0.05);
-            for(let i=0; i<toneLen; i++) {
-                oD[toneStart + i] += Math.sin(2 * Math.PI * 1000 * i / audioCtx.sampleRate) * 0.2;
-            }
+            for(let i=0; i<toneLen; i++) oD[toneStart + i] += Math.sin(2 * Math.PI * 1000 * i / audioCtx.sampleRate) * 0.2;
         }
-
-        for(let i=0; i<wordBuf.length; i++) {
-            oD[preNoiseLen + i] += sD[i];
-        }
-
-        const s = audioCtx.createBufferSource(); s.buffer = out; s.connect(chain); s.start();
+        for(let i=0; i<wordBuf.length; i++) oD[preNoiseLen + i] += sD[i];
+        const s = audioCtx.createBufferSource(); s.buffer = out; s.connect(chain); 
+        s.onended = () => { wordPlayed = true; toggleScoring(true); };
+        s.start();
     }
 
     function handleScore(val, type='') {
+        if(!wordPlayed) return;
         const w = state.activeWords[state.idx];
         const isRev = (state.lastD && state.lastD !== (val===2?'down':'up'));
         state.hist.push({ snr:state.snr, val, type, s1:w.s1, s2:w.s2 });
         if(isRev) state.revs.push(state.snr);
         if(state.revs.length>=2) state.step=1;
         state.lastD=val===2?'down':'up'; state.snr += (val===2?-state.step:state.step);
+        
+        wordPlayed = false;
+        toggleScoring(false);
+
         if(state.revs.length>=6 || state.idx >= state.activeWords.length - 1) {
             const avg = state.revs.length > 0 ? (state.revs.reduce((a,b)=>a+b,0)/state.revs.length).toFixed(1) : state.snr;
+            const diff = Date.now() - state.startTime;
+            const m = Math.floor(diff/60000); const s = Math.floor((diff%60000)/1000);
+            state.duration = `${m}m ${s}s`;
+            
+            sessionResults[curSide] = { 
+                srt: avg, 
+                hist: [...state.hist], 
+                duration: state.duration,
+                sideName: curSide==='L'?'Αριστερό':'Δεξί'
+            };
+
             saveToHistory(avg); finish(avg);
         } else { state.idx++; updateUI(); }
     }
 
     function updateUI() {
         document.getElementById('snrDisp').innerText = state.snr + " dB";
-        document.getElementById('wDisp').innerText = state.activeWords[state.idx].s1 + state.activeWords[state.idx].s2 + ".";
+        document.getElementById('wDisp').innerText = state.activeWords[state.idx].s1 + state.activeWords[state.idx].s2;
         drawGraph('cCanvas', state.hist, state.snr);
     }
 
@@ -282,7 +362,7 @@
 
     function finish(avg) {
         document.getElementById('testUI').style.display='none'; document.getElementById('resUI').style.display='block';
-        document.getElementById('resMeta').innerHTML = `Ασθενής: <b>${document.getElementById('pName').value}</b> | Αυτί: <b>${curSide==='L'?'Αριστερό':'Δεξί'}</b>`;
+        document.getElementById('resMeta').innerHTML = `Ασθενής: <b>${document.getElementById('pName').value}</b> | Αυτί: <b>${curSide==='L'?'Αριστερό':'Δεξί'}</b> | Χρόνος: <b>${state.duration}</b>`;
         document.getElementById('srtFinal').innerText = avg + " dB";
         const tb=document.querySelector('#resTable tbody'); tb.innerHTML="";
         state.hist.forEach((h,i)=>{
@@ -294,7 +374,7 @@
 
     function saveToHistory(srt) {
         let history = JSON.parse(localStorage.getItem('audit_v88_final') || '[]');
-        history.push({ id: Date.now(), name: document.getElementById('pName').value, side: curSide, srt: srt, date: new Date().toLocaleString('el-GR'), raw: [...state.hist] });
+        history.push({ id: Date.now(), name: document.getElementById('pName').value, side: curSide, srt: srt, date: new Date().toLocaleString('el-GR'), raw: [...state.hist], duration: state.duration });
         localStorage.setItem('audit_v88_final', JSON.stringify(history.slice(-15))); loadHistory();
     }
 
@@ -307,12 +387,13 @@
     function loadHistory() {
         const history = JSON.parse(localStorage.getItem('audit_v88_final') || '[]');
         const list = document.getElementById('historyList');
+        if(!list) return;
         list.innerHTML = history.length ? '<label>Ιστορικό Εξετάσεων</label>' : '';
         history.reverse().forEach((item, idx) => {
             const realIdx = history.length - 1 - idx;
             const itemDiv = document.createElement('div');
             itemDiv.className = 'history-item';
-            itemDiv.innerHTML = `<div class="history-link" onclick="viewHistory(${realIdx})"><b>${item.name}</b><br><small>${item.date} | ${item.side==='L'?'Αρ':'Δε'} | ${item.srt}dB</small></div><button class="del-btn" onclick="deleteFromHistory(event, ${item.id})">🗑️</button>`;
+            itemDiv.innerHTML = `<div class="history-link" onclick="viewHistory(${realIdx})"><b>${item.name}</b><br><small>${item.date} | ${item.side==='L'?'Αρ':'Δε'} | ${item.srt}dB | ${item.duration || ""}</small></div><button class="del-btn" onclick="deleteFromHistory(event, ${item.id})">🗑️</button>`;
             list.appendChild(itemDiv);
         });
     }
@@ -320,33 +401,51 @@
     function viewHistory(idx) {
         const history = JSON.parse(localStorage.getItem('audit_v88_final') || '[]');
         const item = history[idx]; document.getElementById('pName').value = item.name;
-        curSide = item.side; state.hist = item.raw; document.getElementById('setup').style.display='none'; finish(item.srt);
+        curSide = item.side; state.hist = item.raw; state.duration = item.duration || ""; 
+        document.getElementById('setup').style.display='none'; finish(item.srt);
     }
 
     function getFileName(ext) {
         const name = (document.getElementById('pName').value || "Ανώνυμος").replace(/\s+/g, '_');
         const date = new Date().toLocaleDateString('el-GR').replace(/\//g, '-');
-        return `${name}_${date}.${ext}`;
+        return `${name}_REPORT_${date}.${ext}`;
     }
 
     function exportToDoc() {
-        let rows = "";
-        state.hist.forEach((h, i) => {
-            const s1S = (h.val===0||h.type==='b') ? 'color:red;font-weight:bold;' : '';
-            const s2S = (h.val===0||h.type==='a') ? 'color:red;font-weight:bold;' : '';
-            rows += `<tr><td>${i+1}</td><td><span style="${s1S}">${h.s1}</span><span style="${s2S}">${h.s2}</span></td><td>${h.snr}</td><td>${h.val===2?'100%':(h.val===0?'0%':'50%')}</td></tr>`;
+        const activeSides = ['L', 'R'].filter(s => sessionResults[s] !== null);
+        let content = "";
+        activeSides.forEach(side => {
+            const res = sessionResults[side];
+            let rows = "";
+            res.hist.forEach((h, i) => {
+                const s1S = (h.val===0||h.type==='b') ? 'color:red;font-weight:bold;' : '';
+                const s2S = (h.val===0||h.type==='a') ? 'color:red;font-weight:bold;' : '';
+                rows += `<tr><td>${i+1}</td><td><span style="${s1S}">${h.s1}</span><span style="${s2S}">${h.s2}</span></td><td>${h.snr}</td><td>${h.val===2?'100%':(h.val===0?'0%':'50%')}</td></tr>`;
+            });
+            content += `<h3>Αυτί: ${res.sideName} | SRT: ${res.srt} dB | Διάρκεια: ${res.duration}</h3>
+                        <table border="1" style="width:100%;border-collapse:collapse;text-align:center;margin-bottom:30px;">
+                            <tr><th>#</th><th>Λέξη</th><th>SNR</th><th>Σκορ</th></tr>${rows}
+                        </table>`;
         });
-        const html = `<html><head><meta charset="utf-8"></head><body style="font-family:Arial;"><h2>Αναφορά: ${document.getElementById('pName').value}</h2><p>Αυτί: ${curSide} | SRT: ${document.getElementById('srtFinal').innerText}</p><table border="1" style="width:100%;border-collapse:collapse;text-align:center;"><tr><th>#</th><th>Λέξη</th><th>SNR</th><th>Σκορ</th></tr>${rows}</table></body></html>`;
+        const html = `<html><head><meta charset="utf-8"></head><body style="font-family:Arial;">
+                      <h2>Αναφορά Εξέτασης: ${document.getElementById('pName').value}</h2>
+                      ${content}</body></html>`;
         const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([html], { type: 'application/msword' })); a.download = getFileName('doc'); a.click();
     }
 
     function exportToExcel() {
+        const activeSides = ['L', 'R'].filter(s => sessionResults[s] !== null);
         let xml = `<?xml version="1.0"?><Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">
-        <Styles><Style ss:ID="sCenter"><Alignment ss:Horizontal="Center" ss:Vertical="Center"/></Style></Styles>
+        <Styles><Style ss:ID="sCenter"><Alignment ss:Horizontal="Center" ss:Vertical="Center"/></Style><Style ss:ID="sHeader"><Font ss:Bold="1"/><Interior ss:Color="#E5E5E5" ss:Pattern="Solid"/></Style></Styles>
         <Worksheet ss:Name="Results"><Table ss:DefaultColumnWidth="100">`;
-        xml += `<Row ss:StyleID="sCenter"><Cell><Data ss:Type="String">A/A</Data></Cell><Cell><Data ss:Type="String">Λέξη</Data></Cell><Cell><Data ss:Type="String">Συλλαβή 1</Data></Cell><Cell><Data ss:Type="String">Συλλαβή 2</Data></Cell><Cell><Data ss:Type="String">SNR (dB)</Data></Cell><Cell><Data ss:Type="String">Σκορ</Data></Cell></Row>`;
-        state.hist.forEach((h, i) => {
-            xml += `<Row ss:StyleID="sCenter"><Cell><Data ss:Type="Number">${i+1}</Data></Cell><Cell><Data ss:Type="String">${h.s1}${h.s2}</Data></Cell><Cell><Data ss:Type="String">${(h.val===0||h.type==='b')?'Λ':'Σ'}</Data></Cell><Cell><Data ss:Type="String">${(h.val===0||h.type==='a')?'Λ':'Σ'}</Data></Cell><Cell><Data ss:Type="Number">${h.snr}</Data></Cell><Cell><Data ss:Type="String">${h.val===2?'100%':(h.val===0?'0%':'50%')}</Data></Cell></Row>`;
+        xml += `<Row><Cell><Data ss:Type="String">Ασθενής: ${document.getElementById('pName').value}</Data></Cell></Row>`;
+        activeSides.forEach(side => {
+            const res = sessionResults[side];
+            xml += `<Row></Row><Row ss:StyleID="sHeader"><Cell><Data ss:Type="String">ΑΥΤΙ: ${res.sideName}</Data></Cell><Cell><Data ss:Type="String">SRT: ${res.srt}dB</Data></Cell><Cell><Data ss:Type="String">Χρόνος: ${res.duration}</Data></Cell></Row>`;
+            xml += `<Row ss:StyleID="sCenter"><Cell><Data ss:Type="String">A/A</Data></Cell><Cell><Data ss:Type="String">Λέξη</Data></Cell><Cell><Data ss:Type="String">Συλλαβή 1</Data></Cell><Cell><Data ss:Type="String">Συλλαβή 2</Data></Cell><Cell><Data ss:Type="String">SNR (dB)</Data></Cell><Cell><Data ss:Type="String">Σκορ</Data></Cell></Row>`;
+            res.hist.forEach((h, i) => {
+                xml += `<Row ss:StyleID="sCenter"><Cell><Data ss:Type="Number">${i+1}</Data></Cell><Cell><Data ss:Type="String">${h.s1}${h.s2}</Data></Cell><Cell><Data ss:Type="String">${(h.val===0||h.type==='b')?'Λ':'Σ'}</Data></Cell><Cell><Data ss:Type="String">${(h.val===0||h.type==='a')?'Λ':'Σ'}</Data></Cell><Cell><Data ss:Type="Number">${h.snr}</Data></Cell><Cell><Data ss:Type="String">${h.val===2?'100%':(h.val===0?'0%':'50%')}</Data></Cell></Row>`;
+            });
         });
         xml += `</Table></Worksheet></Workbook>`;
         const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([xml], { type: "application/vnd.ms-excel" })); a.download = getFileName('xls'); a.click();
